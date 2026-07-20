@@ -1,0 +1,51 @@
+[package]
+name = "harmonia"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+authors = ["Ryan Clanton <ryanclanton@outlook.com>"]
+description = "Atlas partitioned multiphysics coupling orchestration"
+repository = "https://github.com/ryancinsight/harmonia"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+keywords = ["multiphysics", "coupling", "simulation", "no-std"]
+categories = ["no-std", "science"]
+publish = false
+
+[dependencies]
+athena-core = { version = "0.1.0", git = "https://github.com/ryancinsight/athena", default-features = false }
+eunomia = { version = "0.6.0", git = "https://github.com/ryancinsight/eunomia", default-features = false }
+horae = { version = "0.1.0", git = "https://github.com/ryancinsight/horae", default-features = false }
+
+[dev-dependencies]
+aequitas = { version = "0.1.0", git = "https://github.com/ryancinsight/aequitas" }
+proptest = "1.11.0"
+stats_alloc = "0.1.10"
+
+[features]
+default = ["std"]
+std = ["eunomia/std", "horae/std"]
+
+[lints.rust]
+missing_docs = "deny"
+unsafe_code = "forbid"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+unwrap_used = "deny"
+
+[profile.dev]
+debug = "line-tables-only"
+overflow-checks = true
+
+[profile.dev.package."*"]
+debug = false
+
+[profile.test]
+debug = "line-tables-only"
+overflow-checks = true
+
+[profile.release]
+debug = false
+strip = "symbols"
+overflow-checks = true
