@@ -14,7 +14,7 @@ publish = false
 
 [dependencies]
 athena-core = { version = "0.1.0", git = "https://github.com/ryancinsight/athena", default-features = false }
-eunomia = { version = "0.6.0", git = "https://github.com/ryancinsight/eunomia", default-features = false }
+eunomia = { version = "0.7.0", git = "https://github.com/ryancinsight/eunomia", default-features = false }
 horae = { version = "0.1.0", git = "https://github.com/ryancinsight/horae", default-features = false }
 
 [dev-dependencies]

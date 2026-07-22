@@ -5,7 +5,7 @@ version = 4
 [[package]]
 name = "aequitas"
 version = "0.1.0"
-source = "git+https://github.com/ryancinsight/aequitas#eeff191f9b7caecf4f161b2fe832bf170f43c6ac"
+source = "git+https://github.com/ryancinsight/aequitas#262b3e09c19d844f57765d3e4ea6ab2336653d6d"
 dependencies = [
  "eunomia",
  "typenum",
@@ -14,7 +14,7 @@ dependencies = [
 [[package]]
 name = "athena-core"
 version = "0.1.0"
-source = "git+https://github.com/ryancinsight/athena#e15aa44be9d5804343c1bd52f034f62a9bb3fa01"
+source = "git+https://github.com/ryancinsight/athena#7d7acb57ac6ab84180c9703377d135359d31ccc4"
 dependencies = [
  "eunomia",
 ]
@@ -84,8 +84,8 @@ dependencies = [
 
 [[package]]
 name = "eunomia"
-version = "0.6.0"
-source = "git+https://github.com/ryancinsight/eunomia#2a6cb2ce381d3ddffc8f6f5542c5f3383329012a"
+version = "0.7.0"
+source = "git+https://github.com/ryancinsight/eunomia#c65e32444324c9148921e5e99782cc865796da1f"
 dependencies = [
  "bytemuck",
  "libm",
@@ -141,7 +141,7 @@ dependencies = [
 [[package]]
 name = "horae"
 version = "0.1.0"
-source = "git+https://github.com/ryancinsight/horae#e57f798884d06364df8ef19c7e31b35d024a6176"
+source = "git+https://github.com/ryancinsight/horae#2dd3f83fdceaa82d2c62655611537f0b716647e2"
 dependencies = [
  "aequitas",
  "eunomia",
@@ -149,9 +149,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.186"
+version = "0.2.189"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
+checksum = "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2"
 
 [[package]]
 name = "libm"
@@ -402,18 +402,18 @@ checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
 
 [[package]]
 name = "zerocopy"
-version = "0.8.54"
+version = "0.8.55"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7cbbc0a705a0fd05cc3676525980d2bf5a9bc4adac6d6475209a7887cf59d19"
+checksum = "b5a105cd7b140f6eeec8acff2ea38135d3cab283ada58540f629fe51e46696eb"
 dependencies = [
  "zerocopy-derive",
 ]
 
 [[package]]
 name = "zerocopy-derive"
-version = "0.8.54"
+version = "0.8.55"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2e817b7b52d0c7358d3246da9d69935ebb18116b2b102b4230dac079b4862f5"
+checksum = "0fe976fb70c78cd64cccfe3a6fc142244e8a77b70959b30faf9d0ac37ee228eb"
 dependencies = [
  "proc-macro2",
  "quote",
