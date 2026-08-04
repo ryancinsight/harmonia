@@ -1,0 +1,14 @@
+[book]
+title = "harmonia: Multiphysics Coupling for Atlas"
+authors = ["Ryan Clanton"]
+src = "."
+language = "en"
+[build]
+build-dir = "../../target/book/harmonia"
+create-missing = false
+[output.html]
+no-section-label = false
+mathjax-support = true
+site-url = "/harmonia/"
+git-repository-url = "https://github.com/ryancinsight/harmonia"
+default-theme = "rust"
