@@ -27,6 +27,20 @@ fn identity_transfer_preserves_borrow_and_pointer() {
 }
 
 #[test]
+fn identity_transfer_rejects_mismatched_scratch_dimension() {
+    let source = [1_u32, 2, 3];
+    let mut scratch = [0_u32; 2];
+
+    assert_eq!(
+        IdentityTransfer.transfer(&source, &mut scratch),
+        Err(TransferError::Dimension {
+            expected: 3,
+            actual: 2,
+        })
+    );
+}
+
+#[test]
 fn const_index_transfer_selects_without_ownership() {
     let source = [3_u32, 5, 8];
     let mut scratch = [0_u32; 1];

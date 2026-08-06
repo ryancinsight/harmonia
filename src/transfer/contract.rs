@@ -16,6 +16,10 @@ where
 
     /// Transfer `source` into a borrowed result.
     ///
+    /// The caller must provide scratch storage with exactly the destination
+    /// dimension, even when an implementation can return a borrowed source
+    /// directly. This keeps every transfer boundary validated consistently.
+    ///
     /// # Errors
     ///
     /// Returns a dimensional or value failure without allocating.

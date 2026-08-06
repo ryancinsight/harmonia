@@ -19,8 +19,14 @@ where
     fn transfer<'a>(
         &self,
         source: &'a [T],
-        _scratch: &'a mut [T],
+        scratch: &'a mut [T],
     ) -> Result<Cow<'a, [T]>, TransferError> {
+        if scratch.len() != source.len() {
+            return Err(TransferError::Dimension {
+                expected: source.len(),
+                actual: scratch.len(),
+            });
+        }
         Ok(Cow::Borrowed(source))
     }
 }
