@@ -6,4 +6,4 @@
 
 | ADR | Title | Status |
 | --- | ----- | ------ |
-| [0001](0001-partitioned-coupling-boundary.md) | Partitioned coupling boundary | accepted |
+| [0001](0001-partitioned-coupling-boundary.md) | Partitioned coupling boundary | Accepted |
