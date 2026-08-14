@@ -1,5 +1,7 @@
 //! Coupled two-rate decay over one heterogeneous-subcycle window.
 
+#![expect(clippy::print_stdout, reason = "example stdout is the deliverable")]
+
 use core::convert::Infallible;
 
 use aequitas::systems::si::quantities::Time;
