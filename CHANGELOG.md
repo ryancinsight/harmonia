@@ -6,6 +6,9 @@ All notable changes to Harmonia are documented in this file.
 
 ### Changed
 
+- Make relaxation a mutable pair-level contract so stateful policies can use the
+  complete coupled defect and retain history across iterations without a
+  consumer-owned loop or adapter.
 - The identity transfer validates that caller-provided scratch storage has
   exactly the destination dimension, returning a typed `TransferError::Dimension`
   on mismatch instead of silently ignoring the scratch. The transfer contract

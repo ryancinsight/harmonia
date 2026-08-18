@@ -31,8 +31,8 @@ where
     fn first_to_second(&self) -> &Self::FirstToSecond;
     /// Borrow the second-to-first transfer.
     fn second_to_first(&self) -> &Self::SecondToFirst;
-    /// Borrow the relaxation policy.
-    fn relaxation(&self) -> &Self::Relaxation;
+    /// Mutably borrow the relaxation policy.
+    fn relaxation_mut(&mut self) -> &mut Self::Relaxation;
 }
 
 /// Concrete statically dispatched partition-pair bundle.
@@ -127,7 +127,7 @@ where
     }
 
     #[inline]
-    fn relaxation(&self) -> &Self::Relaxation {
-        &self.relaxation
+    fn relaxation_mut(&mut self) -> &mut Self::Relaxation {
+        &mut self.relaxation
     }
 }

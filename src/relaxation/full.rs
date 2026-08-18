@@ -10,23 +10,50 @@ impl<T> Relaxation<T> for FullRelaxation
 where
     T: NumericElement,
 {
-    fn update(&self, current: &mut [T], candidate: &[T]) -> Result<(), RelaxationError> {
+    fn update_pair(
+        &mut self,
+        first_current: &mut [T],
+        first_candidate: &[T],
+        second_current: &mut [T],
+        second_candidate: &[T],
+    ) -> Result<(), RelaxationError> {
+        Self::validate_slice(first_current, first_candidate, 0)?;
+        Self::validate_slice(second_current, second_candidate, first_current.len())?;
+        Self::apply_slice(first_current, first_candidate);
+        Self::apply_slice(second_current, second_candidate);
+        Ok(())
+    }
+}
+
+impl FullRelaxation {
+    fn validate_slice<T>(
+        current: &mut [T],
+        candidate: &[T],
+        index_offset: usize,
+    ) -> Result<(), RelaxationError>
+    where
+        T: NumericElement,
+    {
         if current.len() != candidate.len() {
             return Err(RelaxationError::Dimension {
                 current: current.len(),
                 candidate: candidate.len(),
             });
         }
-        for (index, (destination, source)) in current
-            .iter_mut()
-            .zip(candidate.iter().copied())
-            .enumerate()
-        {
+        for (index, source) in candidate.iter().copied().enumerate() {
             if !source.is_finite() {
-                return Err(RelaxationError::NonFinite { index });
+                return Err(RelaxationError::NonFinite {
+                    index: index_offset + index,
+                });
             }
-            *destination = source;
         }
         Ok(())
+    }
+
+    fn apply_slice<T>(current: &mut [T], candidate: &[T])
+    where
+        T: NumericElement,
+    {
+        current.copy_from_slice(candidate);
     }
 }

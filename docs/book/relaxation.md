@@ -156,11 +156,11 @@ non-finite result with the offending index. A relaxation that produced a NaN
 would otherwise poison the interface silently and reappear several iterations
 later as a non-finite metric with no indication of where it started.
 
-One policy serves both interface blocks: the pair model exposes a single
-`relaxation()` and the loop applies it to the first and second guesses in turn.
-Per-block weights are not expressible, which matches the convergence test —
-Chapter 1's defect is taken over the two blocks stacked into one vector, so the
-iteration treats the interface as one object throughout.
+One policy serves both interface blocks: the pair model exposes one mutable
+`relaxation_mut()`, and the loop passes both guesses to one `update_pair` call.
+This matters for stateful policies because a coupled defect and its history are
+properties of the stacked interface, not of either block in isolation. The
+built-in fixed policy still applies the same weight to both blocks.
 
 Both policies are also cost-free at the pair's boundary: the transfer and
 relaxation policies are zero-sized types wherever they carry no data, and the
