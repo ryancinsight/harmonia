@@ -5,6 +5,7 @@ version = 4
 [[package]]
 name = "aequitas"
 version = "0.2.0"
+source = "git+https://github.com/ryancinsight/aequitas#c74b662c9204d7ea18c1f56829f77ded753803ca"
 dependencies = [
  "eunomia",
  "typenum",
@@ -12,7 +13,8 @@ dependencies = [
 
 [[package]]
 name = "athena-core"
-version = "0.1.0"
+version = "0.1.1"
+source = "git+https://github.com/ryancinsight/athena#f6608bef656e301a68132d45f7af6dae1ca03a30"
 dependencies = [
  "eunomia",
 ]
@@ -83,6 +85,7 @@ dependencies = [
 [[package]]
 name = "eunomia"
 version = "0.8.0"
+source = "git+https://github.com/ryancinsight/eunomia#88c685f2a733df73f753f2351b2e4d2ede8ff478"
 dependencies = [
  "bytemuck",
  "libm",
@@ -138,6 +141,7 @@ dependencies = [
 [[package]]
 name = "horae"
 version = "0.1.0"
+source = "git+https://github.com/ryancinsight/horae#0d8655322916146d10c98a7dfff1e74d44338638"
 dependencies = [
  "aequitas",
  "eunomia",
@@ -415,219 +419,3 @@ dependencies = [
  "quote",
  "syn",
 ]
-
-[[patch.unused]]
-name = "tyche-core"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "hermes-simd"
-version = "0.5.0"
-
-[[patch.unused]]
-name = "proteus"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "themis-topology"
-version = "0.10.1"
-
-[[patch.unused]]
-name = "ritk-core"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "ritk-dicom"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "ritk-image"
-version = "0.2.0"
-
-[[patch.unused]]
-name = "ritk-io"
-version = "0.2.0"
-
-[[patch.unused]]
-name = "ritk-registration"
-version = "0.53.0"
-
-[[patch.unused]]
-name = "ritk-spatial"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "ritk-vtk"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "gaia"
-version = "0.3.0"
-
-[[patch.unused]]
-name = "athena-leto"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "consus-compression"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "consus-core"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "consus-hdf5"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "consus-io"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "consus-npy"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "consus-onnx"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "consus-zarr"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "melinoe"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "hephaestus-core"
-version = "0.18.0"
-
-[[patch.unused]]
-name = "hephaestus-cuda"
-version = "0.18.0"
-
-[[patch.unused]]
-name = "hephaestus-metal"
-version = "0.18.0"
-
-[[patch.unused]]
-name = "hephaestus-rocm"
-version = "0.18.0"
-
-[[patch.unused]]
-name = "hephaestus-wgpu"
-version = "0.18.0"
-
-[[patch.unused]]
-name = "mnemosyne-arena"
-version = "0.3.0"
-
-[[patch.unused]]
-name = "mnemosyne-backend"
-version = "0.5.0"
-
-[[patch.unused]]
-name = "mnemosyne-memory"
-version = "0.6.0"
-
-[[patch.unused]]
-name = "mnemosyne-memory-core"
-version = "0.2.0"
-
-[[patch.unused]]
-name = "moirai-async"
-version = "0.4.0"
-
-[[patch.unused]]
-name = "moirai-core"
-version = "0.4.0"
-
-[[patch.unused]]
-name = "moirai-executor"
-version = "0.4.0"
-
-[[patch.unused]]
-name = "moirai-gpu"
-version = "0.4.0"
-
-[[patch.unused]]
-name = "moirai-http"
-version = "0.4.0"
-
-[[patch.unused]]
-name = "moirai-parallel"
-version = "0.4.0"
-
-[[patch.unused]]
-name = "moirai-runtime"
-version = "0.4.0"
-
-[[patch.unused]]
-name = "moirai-sync"
-version = "0.4.0"
-
-[[patch.unused]]
-name = "leto"
-version = "0.41.0"
-
-[[patch.unused]]
-name = "leto-ops"
-version = "0.41.0"
-
-[[patch.unused]]
-name = "hyperion"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "iris"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "apollo-fft"
-version = "0.25.0"
-
-[[patch.unused]]
-name = "apollo-nufft"
-version = "0.7.0"
-
-[[patch.unused]]
-name = "apollo-sht"
-version = "0.7.0"
-
-[[patch.unused]]
-name = "coeus-autograd"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "coeus-core"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "coeus-leto"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "coeus-nn"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "coeus-ops"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "coeus-optim"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "coeus-tensor"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "asclepius"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "asclepius-coeus"
-version = "0.1.0"
