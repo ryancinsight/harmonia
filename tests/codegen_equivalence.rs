@@ -18,7 +18,8 @@ pub fn concrete_full_update(current: f64, candidate: f64) -> f64 {
 /// Apply the generic zero-sized full-relaxation policy.
 pub fn generic_full_update(current: f64, candidate: f64) -> f64 {
     let mut destination = [current];
-    match FullRelaxation.update(&mut destination, &[candidate]) {
+    let mut secondary = [current];
+    match FullRelaxation.update_pair(&mut destination, &[candidate], &mut secondary, &[current]) {
         Ok(()) => destination[0],
         Err(_) => current,
     }

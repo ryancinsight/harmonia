@@ -282,15 +282,10 @@ where
         CouplingError<T, <M::First as Partition<T>>::Error, <M::Second as Partition<T>>::Error>,
     > {
         self.model
-            .relaxation()
-            .update(
+            .relaxation_mut()
+            .update_pair(
                 &mut self.workspace.first_guess,
                 &self.workspace.first_candidate,
-            )
-            .map_err(CouplingError::Relaxation)?;
-        self.model
-            .relaxation()
-            .update(
                 &mut self.workspace.second_guess,
                 &self.workspace.second_candidate,
             )

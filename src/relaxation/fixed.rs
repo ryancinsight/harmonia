@@ -41,24 +41,56 @@ impl<T> Relaxation<T> for FixedRelaxation<T>
 where
     T: RealField,
 {
-    fn update(&self, current: &mut [T], candidate: &[T]) -> Result<(), RelaxationError> {
+    fn update_pair(
+        &mut self,
+        first_current: &mut [T],
+        first_candidate: &[T],
+        second_current: &mut [T],
+        second_candidate: &[T],
+    ) -> Result<(), RelaxationError> {
+        Self::validate_slice(self.weight, first_current, first_candidate, 0)?;
+        Self::validate_slice(
+            self.weight,
+            second_current,
+            second_candidate,
+            first_current.len(),
+        )?;
+        Self::apply_slice(self.weight, first_current, first_candidate);
+        Self::apply_slice(self.weight, second_current, second_candidate);
+        Ok(())
+    }
+}
+
+impl<T> FixedRelaxation<T>
+where
+    T: RealField,
+{
+    fn validate_slice(
+        weight: T,
+        current: &mut [T],
+        candidate: &[T],
+        index_offset: usize,
+    ) -> Result<(), RelaxationError> {
         if current.len() != candidate.len() {
             return Err(RelaxationError::Dimension {
                 current: current.len(),
                 candidate: candidate.len(),
             });
         }
-        for (index, (value, target)) in current
-            .iter_mut()
-            .zip(candidate.iter().copied())
-            .enumerate()
-        {
-            let updated = self.weight.scalar_fmadd(target - *value, *value);
+        for (index, (value, target)) in current.iter().zip(candidate.iter().copied()).enumerate() {
+            let updated = weight.scalar_fmadd(target - *value, *value);
             if !updated.is_finite() {
-                return Err(RelaxationError::NonFinite { index });
+                return Err(RelaxationError::NonFinite {
+                    index: index_offset + index,
+                });
             }
-            *value = updated;
         }
         Ok(())
+    }
+
+    fn apply_slice(weight: T, current: &mut [T], candidate: &[T]) {
+        for (value, target) in current.iter_mut().zip(candidate.iter().copied()) {
+            *value = weight.scalar_fmadd(target - *value, *value);
+        }
     }
 }

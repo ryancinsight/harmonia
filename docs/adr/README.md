@@ -7,3 +7,4 @@
 | ADR | Title | Status |
 | --- | ----- | ------ |
 | [0001](0001-partitioned-coupling-boundary.md) | Partitioned coupling boundary | Accepted |
+| [0002](0002-stateful-pair-relaxation.md) | Stateful pair relaxation boundary | Accepted |

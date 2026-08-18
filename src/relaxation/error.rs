@@ -28,6 +28,10 @@ pub enum RelaxationError {
         candidate: usize,
     },
     /// An updated entry became non-finite.
+    ///
+    /// The index addresses the concatenation of the first and second
+    /// interfaces, with the second interface beginning after the first
+    /// interface's length.
     NonFinite {
         /// Invalid entry index.
         index: usize,

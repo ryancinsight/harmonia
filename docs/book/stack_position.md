@@ -180,10 +180,12 @@ solver is a defect in this crate, not in the consumer.
 
 A new interface transfer implements `Transfer<T>`: report the destination
 dimension for a given source dimension, and fill or borrow the caller's scratch.
-A new relaxation implements `Relaxation<T>`: update the current interface toward
-the candidate in place. Neither requires a change to the coupling loop, and both
+A new relaxation implements `Relaxation<T>`: update both current interfaces
+toward their candidates in one `update_pair` call. Stateful policies can retain
+history between iterations without changing the coupling loop, and all policies
 compose into a `PairComponents` bundle at the call site.
 
-A new *coupling family* — Gauss-Seidel ordering, three or more partitions, a
-dynamic relaxation policy needing defect history — is a change to the loop, and
-is a decision recorded in an ADR before it is a change to the code.
+A new *coupling family* — Gauss-Seidel ordering or three or more partitions — is
+a change to the loop, and is a decision recorded in an ADR before it is a change
+to the code. A dynamic relaxation policy is a policy-level change when it fits
+the existing pair contract.
