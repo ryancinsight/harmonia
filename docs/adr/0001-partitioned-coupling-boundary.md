@@ -43,8 +43,9 @@ transfer, relaxation, observer, and two const subcycle ratios; Rust
 monomorphizes the operation without vtables.
 
 The workspace owns fixed `Box<[T]>` buffers. Construction validates dimensions
-once. A solve performs no allocation and accepts only slices of those validated
-lengths.
+once. A solve with a static relaxation policy performs no allocation and accepts
+only slices of those validated lengths. Stateful policies own any retained
+history explicitly.
 
 ## Theorems and proof obligations
 

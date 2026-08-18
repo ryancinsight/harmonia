@@ -28,10 +28,11 @@ interfaces. An implementation that returns an error must not partially update
 either interface; this is the policy boundary needed by the transactional
 coupling theorem in ADR 0001.
 
-This ADR promotes the provider seam only. It does not duplicate an Anderson or
-Aitken algorithm in Harmonia: iterative solver policy remains owned by its
-existing provider, and its direct integration is a subsequent co-evolution
-change once that provider implements this contract.
+This ADR promotes the provider seam and leaves algorithm selection to named
+policy implementors. Harmonia's componentwise Aitken policy is defined in ADR
+0003. Anderson acceleration remains a separate Leto-owned algorithm; adding a
+second Anderson implementation here would still duplicate an existing source
+of truth.
 
 ## Rejected alternatives
 

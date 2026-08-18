@@ -8,3 +8,4 @@
 | --- | ----- | ------ |
 | [0001](0001-partitioned-coupling-boundary.md) | Partitioned coupling boundary | Accepted |
 | [0002](0002-stateful-pair-relaxation.md) | Stateful pair relaxation boundary | Accepted |
+| [0003](0003-aitken-relaxation-policy.md) | Provider-owned Aitken relaxation policy | Accepted |

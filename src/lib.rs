@@ -26,6 +26,7 @@ pub use coupling::{
 };
 pub use partition::{Partition, Substep};
 pub use relaxation::{
-    FixedRelaxation, FullRelaxation, InvalidRelaxation, Relaxation, RelaxationError,
+    AitkenRelaxation, FixedRelaxation, FullRelaxation, InvalidAitkenRelaxation, InvalidRelaxation,
+    Relaxation, RelaxationError,
 };
 pub use transfer::{IdentityTransfer, IndexTransfer, Transfer, TransferError};
