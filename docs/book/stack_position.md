@@ -52,8 +52,8 @@ documentation. A partition's state and interface arrive as `&mut [T]` and
 - the `Transfer<T>` contract and its `IdentityTransfer` and
   `IndexTransfer<SOURCE>` policies, returning `Cow<'a, [T]>` so a transfer
   borrows rather than allocates;
-- the `Relaxation<T>` contract and the `FullRelaxation` and `FixedRelaxation<T>`
-  policies of Chapter 2;
+- the `Relaxation<T>` contract and the `FullRelaxation`, `FixedRelaxation<T>`,
+  and `AitkenRelaxation<T>` policies of Chapter 2;
 - `PairWorkspace`, which allocates once and validates every dimension against
   the pair model before a solve can be built;
 - the outcome vocabulary: `CouplingReport` on success and `CouplingError` on
@@ -116,17 +116,21 @@ configuration, fixed for the duration of a run.
 
 ## Allocation and reuse
 
-`PairWorkspace::for_model` performs every allocation the coupling will ever
-make. It reads the six dimensions from the two partitions, rejects any that is
-zero, checks each directed transfer's destination dimension against the receiving
-partition's input, and allocates twelve fixed boxed slices. After that a window
-solve writes only into those buffers and into the caller's four slices.
+`PairWorkspace::for_model` performs every allocation required by the coupling
+workspace. It reads the six dimensions from the two partitions, rejects any
+that is zero, checks each directed transfer's destination dimension against the
+receiving partition's input, and allocates twelve fixed boxed slices. Static
+relaxation policies then write only into those buffers and into the caller's
+four slices. `AitkenRelaxation<T>` separately allocates its retained history
+and scratch vectors on first use, then reuses their capacity.
 
-Repeated solves therefore allocate nothing, which matters because a simulation
-calls `solve_window` once per coupling window for the length of the run. The
-claim is instrumented rather than asserted: an allocation-counting global
-allocator wraps sixteen consecutive solves and asserts zero allocations, zero
-reallocations, and zero deallocations.
+Repeated solves with static policies therefore allocate nothing, which matters
+because a simulation calls `solve_window` once per coupling window for the
+length of the run. The claim is instrumented rather than asserted: an
+allocation-counting global allocator wraps sixteen consecutive solves and
+asserts zero allocations, zero reallocations, and zero deallocations. Stateful
+Aitken history is an explicit retained allocation rather than part of that
+static-policy claim.
 
 ## Crate layout
 
@@ -137,7 +141,7 @@ two chapters.
 | --- | --- |
 | `partition` | the `Partition<T>` contract and `Substep<T>` |
 | `transfer` | the `Transfer<T>` contract, identity and const-index policies, `TransferError` |
-| `relaxation` | the `Relaxation<T>` contract, `FullRelaxation`, `FixedRelaxation<T>`, and their errors |
+| `relaxation` | the `Relaxation<T>` contract, static and stateful policies, and their errors |
 | `coupling` | `PartitionedPair`, `PairModel`, `PairComponents`, `PairWorkspace`, `CouplingReport`, `CouplingError` |
 
 ## The Phase 0 boundary
@@ -151,7 +155,7 @@ rather than stubbed. There is no feature flag hiding an unimplemented path and n
 | interface waveform interpolation | the interface is a zeroth-order hold across a window (Chapter 1) |
 | more than two partitions | no stable scheduling and ownership contract for a partition graph exists yet |
 | Gauss-Seidel ordering | Phase 0 evaluates both partitions from the same iterate |
-| quasi-Newton acceleration | needs defect history the Phase 0 workspace does not retain (Chapter 2) |
+| Anderson-style quasi-Newton acceleration | remains Leto-owned; Harmonia's Aitken policy is the supported dynamic relaxation boundary (Chapter 2) |
 | distributed scheduling | execution placement belongs to its own provider |
 | conservation-aware nonmatching-mesh transfer | requires a mesh, which Harmonia does not have |
 

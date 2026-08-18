@@ -112,7 +112,7 @@ zero allocations after workspace construction.
 ## Scope boundary
 
 Phase 0 intentionally excludes waveform interpolation, more than two
-partitions, Gauss-Seidel ordering, quasi-Newton acceleration, distributed
-scheduling, and conservation-aware nonmatching-mesh transfer. Those
+partitions, Gauss-Seidel ordering, Anderson-style quasi-Newton acceleration,
+distributed scheduling, and conservation-aware nonmatching-mesh transfer. Those
 capabilities require additional present contracts; they are not hidden behind
 stubs or feature flags.

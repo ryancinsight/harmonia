@@ -66,8 +66,9 @@ needed.
 And for \\(0 < \lambda < 1\\) the admissible range extends past one:
 \\(\mu\\) vanishes at \\(\omega = 1/(1-\lambda) > 1\\). Over-relaxation is
 optimal for that case. Harmonia's fixed weight is validated into \\((0, 1]\\),
-so it cannot express it; the crate takes damping as the case worth serving and
-leaves acceleration to a policy that does not yet exist. For complex
+so it cannot express it; the crate's bounded Aitken policy supplies a
+componentwise real secant estimate, while Anderson-style acceleration remains
+outside this crate. For complex
 \\(\lambda\\) the scalar inequality becomes the disc condition — \\(\omega(1 -
 \lambda)\\) must lie inside the circle of radius one centred at one — and the
 same three regimes appear as its real slice.
@@ -115,19 +116,21 @@ parameter to be the decisive ingredient in the efficiency of fixed-point FSI
 solvers. It costs two vector operations per iteration and no extra evaluation of
 \\(F\\).
 
-Harmonia ships neither Aitken nor steepest descent. The `Relaxation<T>` trait is
-the seam they would arrive through — it receives the current iterate and the
-candidate and updates in place — but a dynamic policy needs the previous
-iteration's defect, which Harmonia's Phase 0 workspace does not retain, so
-adding one is a change to the loop and not only a new implementor. The
-exclusion is recorded in the crate's scope boundary rather than stubbed.
+Harmonia's `Relaxation<T>` seam retains enough state for a policy to implement
+dynamic relaxation without changing the coupling loop. `AitkenRelaxation<T>`
+owns the previous stacked defect and factor, so it computes the componentwise
+Irons--Tuck secant update from the two interface blocks in one call. It costs
+two vector operations per iteration and no extra evaluation of `F`. Its
+configuration validates positive finite bounds and a positive finite
+denominator tolerance in the native precision of `T`.
 
 ## What Harmonia provides
 
-Two policies implement `Relaxation<T>`.
+Three policies implement `Relaxation<T>`.
 
 | Policy | Weight | Size | Failure |
 | --- | --- | --- | --- |
+| `AitkenRelaxation<T>` | bounded componentwise secant factors | retained history and reusable workspaces | non-finite input, factor, or update |
 | `FullRelaxation` | \\(\omega = 1\\) | zero-sized | non-finite candidate entry |
 | `FixedRelaxation<T>` | validated \\(\omega \in (0, 1]\\) | one scalar, `repr(transparent)` | non-finite updated entry |
 
@@ -160,12 +163,16 @@ One policy serves both interface blocks: the pair model exposes one mutable
 `relaxation_mut()`, and the loop passes both guesses to one `update_pair` call.
 This matters for stateful policies because a coupled defect and its history are
 properties of the stacked interface, not of either block in isolation. The
-built-in fixed policy still applies the same weight to both blocks.
+fixed policy applies the same weight to both blocks, while Aitken computes one
+factor per stacked component. A policy error leaves both interfaces and its
+retained history unchanged.
 
-Both policies are also cost-free at the pair's boundary: the transfer and
-relaxation policies are zero-sized types wherever they carry no data, and the
-test suite asserts it on `IdentityTransfer`, `IndexTransfer<N>`, and
-`FullRelaxation`.
+The static policies are cost-free at the pair's boundary: the transfer and
+relaxation policies are zero-sized wherever they carry no data, and the test
+suite asserts it on `IdentityTransfer`, `IndexTransfer<N>`, and
+`FullRelaxation`. `AitkenRelaxation<T>` intentionally retains state and reuses
+its capacity after the first update; its history allocation is not hidden as a
+workspace allocation claim.
 
 ## Relaxation cannot manufacture convergence
 
@@ -200,8 +207,8 @@ it does.
 
 Start at `FullRelaxation`. If the reported defect grows from iteration to
 iteration, the round trip amplifies and a weight is needed; if it falls but
-slowly, the weight is already too small or the coupling wants an accelerator
-Harmonia does not have.
+slowly, use `AitkenRelaxation<T>` when a bounded secant estimate is appropriate
+for the interface contract.
 
 The defect history is the diagnostic, and it is exposed rather than logged.
 Athena's `IterationObserver` receives an `IterationState` at every check point

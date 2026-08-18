@@ -16,6 +16,37 @@ impl fmt::Display for InvalidRelaxation {
 
 impl core::error::Error for InvalidRelaxation {}
 
+/// Invalid Aitken relaxation configuration.
+#[non_exhaustive]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum InvalidAitkenRelaxation {
+    /// A lower or upper relaxation bound is non-finite.
+    NonFiniteBound,
+    /// The lower relaxation bound is not positive.
+    NonPositiveMinimum,
+    /// The upper relaxation bound is below the lower bound.
+    MaximumBelowMinimum,
+    /// The residual-denominator tolerance is non-finite.
+    NonFiniteTolerance,
+    /// The residual-denominator tolerance is not positive.
+    NonPositiveTolerance,
+}
+
+impl fmt::Display for InvalidAitkenRelaxation {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let message = match self {
+            Self::NonFiniteBound => "Aitken relaxation bounds must be finite",
+            Self::NonPositiveMinimum => "Aitken minimum relaxation must be positive",
+            Self::MaximumBelowMinimum => "Aitken maximum relaxation must not be below its minimum",
+            Self::NonFiniteTolerance => "Aitken residual tolerance must be finite",
+            Self::NonPositiveTolerance => "Aitken residual tolerance must be positive",
+        };
+        formatter.write_str(message)
+    }
+}
+
+impl core::error::Error for InvalidAitkenRelaxation {}
+
 /// Relaxation update failure.
 #[non_exhaustive]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
