@@ -2,6 +2,15 @@
 
 #![expect(clippy::print_stdout, reason = "example stdout is the deliverable")]
 
+// The book includes this file verbatim as a tested code sample. `mdbook test`
+// spawns rustdoc against a staged library path rather than a cargo target, so
+// every crate the sample names has to be declared; cargo itself resolves these
+// from the extern prelude and ignores the declarations.
+extern crate aequitas;
+extern crate athena_core;
+extern crate harmonia;
+extern crate horae;
+
 use core::convert::Infallible;
 
 use aequitas::systems::si::quantities::Time;

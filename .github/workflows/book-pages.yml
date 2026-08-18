@@ -20,3 +20,14 @@ jobs:
       id-token: write
     with:
       output-path: target/book/harmonia
+      # The book sample is an `{{#include}}` of the crate's runnable example,
+      # so `mdbook test` compiles and runs exactly the code the chapter shows.
+      mdbook-test: true
+      # harmonia's closure covers every crate the sample names: athena-core and
+      # horae directly, aequitas transitively through horae. The workflow stages
+      # one plain-named rlib per crate for `mdbook test --library-path`.
+      cargo-package: harmonia
+      # Must match rust-toolchain.toml: cargo build honours the pin while
+      # mdbook spawns rustdoc from the installed default, and a mismatch
+      # fails E0514 (crate compiled by an incompatible rustc).
+      rust-toolchain: "1.97.0"

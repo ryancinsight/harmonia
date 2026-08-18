@@ -6,6 +6,11 @@ language = "en"
 [build]
 build-dir = "../../target/book/harmonia"
 create-missing = false
+
+# `mdbook test` compiles fenced `rust` blocks as doctests; the edition must
+# match the crate so book samples parse exactly as the package does.
+[rust]
+edition = "2024"
 [output.html]
 no-section-label = false
 mathjax-support = true
