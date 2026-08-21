@@ -12,6 +12,23 @@ Physics models remain in their domain packages. Harmonia receives borrowed
 partition state and interface slices; it owns no mesh, field, material law,
 linear solver, accelerator, or runtime.
 
+## Typed physical-field boundary
+
+`GridGeometry<T, RANK>` validates cell extents, positive finite SI spacing,
+finite origin coordinates, and direction-cosine orthonormality. A
+`FieldEnvelope<'a, T, D, RANK>` then borrows exactly one Aequitas
+`Quantity<T, D>` per cell and associates the values with a Horae simulation
+instant. The envelope has no allocation or value copy, while `D` prevents a
+consumer that accepts an intensity field from receiving a volumetric power
+density field.
+
+Geometry compatibility is exact: shape, spacing, origin, direction cosines,
+and simulation time must match before two envelopes are exchanged. Harmonia
+owns this orchestration contract; Aequitas remains the single source of truth
+for quantity dimensions. Mesh interpolation, unit conversion, and solver
+source-term adapters remain in the consuming domain packages and are not
+implied by this boundary.
+
 ## Phase 0 contract
 
 `PartitionedPair<M, T, FIRST_SUBSTEPS, SECOND_SUBSTEPS>` advances two
@@ -115,4 +132,5 @@ Phase 0 intentionally excludes waveform interpolation, more than two
 partitions, Gauss-Seidel ordering, Anderson-style quasi-Newton acceleration,
 distributed scheduling, and conservation-aware nonmatching-mesh transfer. Those
 capabilities require additional present contracts; they are not hidden behind
-stubs or feature flags.
+stubs or feature flags. The typed physical-field boundary is a metadata and
+borrowed-value contract only; it does not implement those operations.

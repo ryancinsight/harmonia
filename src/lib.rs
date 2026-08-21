@@ -13,6 +13,8 @@ extern crate alloc;
 
 /// Coupling algorithms and reusable workspaces.
 pub mod coupling;
+/// Quantity-typed, geometry-validated physical-field exchange.
+pub mod field;
 /// Partition contracts and typed substeps.
 pub mod partition;
 /// Fixed-point relaxation policies.
@@ -24,6 +26,7 @@ pub use coupling::{
     CouplingError, CouplingReport, PairComponents, PairConstructionError, PairModel, PairWorkspace,
     PartitionedPair, WorkspaceError,
 };
+pub use field::{FieldEnvelope, FieldError, GridGeometry};
 pub use partition::{Partition, Substep};
 pub use relaxation::{
     AitkenRelaxation, FixedRelaxation, FullRelaxation, InvalidAitkenRelaxation, InvalidRelaxation,
