@@ -13,12 +13,12 @@ categories = ["no-std", "science"]
 publish = false
 
 [dependencies]
+aequitas = { version = "0.2.0", git = "https://github.com/ryancinsight/aequitas", default-features = false }
 athena-core = { version = "0.1.0", git = "https://github.com/ryancinsight/athena", default-features = false }
 eunomia = { version = "0.8.0", git = "https://github.com/ryancinsight/eunomia", default-features = false }
 horae = { version = "0.1.0", git = "https://github.com/ryancinsight/horae", default-features = false }
 
 [dev-dependencies]
-aequitas = { version = "0.2.0", git = "https://github.com/ryancinsight/aequitas" }
 proptest = "1.11.0"
 stats_alloc = "0.1.10"
 
