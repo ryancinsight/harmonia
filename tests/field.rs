@@ -75,6 +75,24 @@ fn rejects_invalid_geometry_and_value_count() {
     assert_eq!(
         GridGeometry::try_new(
             [2, 2],
+            [Length::from_base(-1.0), Length::from_base(1.0)],
+            origin,
+            identity,
+        ),
+        Err(FieldError::InvalidSpacing { axis: 0 })
+    );
+    assert_eq!(
+        GridGeometry::try_new(
+            [2, 2],
+            [Length::from_base(f64::INFINITY), Length::from_base(1.0)],
+            origin,
+            identity,
+        ),
+        Err(FieldError::InvalidSpacing { axis: 0 })
+    );
+    assert_eq!(
+        GridGeometry::try_new(
+            [2, 2],
             spacing,
             [Length::from_base(f64::NAN), Length::from_base(0.0)],
             identity,
@@ -162,6 +180,81 @@ fn compatible_frames_require_exact_metadata_and_time() {
     assert_eq!(
         first.validate_compatible(&later),
         Err(FieldError::TimeMismatch)
+    );
+}
+
+#[test]
+fn rotated_frame_is_orthonormal_and_metadata_round_trips() {
+    let direction = [[0.0_f64, -1.0], [1.0, 0.0]];
+    let frame = GridGeometry::try_new(
+        [2, 2],
+        [Length::from_base(0.5), Length::from_base(0.75)],
+        [Length::from_base(1.0), Length::from_base(-2.0)],
+        direction,
+    )
+    .expect("invariant: quarter-turn direction is orthonormal");
+
+    assert_eq!(frame.shape(), &[2, 2]);
+    assert_eq!(frame.direction(), &direction);
+    assert_eq!(frame.spacing()[0].into_base().to_bits(), 0.5_f64.to_bits());
+    assert_eq!(
+        frame.origin()[1].into_base().to_bits(),
+        (-2.0_f64).to_bits()
+    );
+}
+
+#[test]
+fn compatible_frames_report_shape_origin_and_direction_mismatches() {
+    let values = [Quantity::<f64, dimensions::Intensity>::from_base(1.0); 4];
+    let time = Instant::new(aequitas::systems::si::quantities::Time::from_base(0.0))
+        .expect("invariant: zero is finite");
+    let first = FieldEnvelope::try_new(&values, geometry(), time)
+        .expect("invariant: value count matches geometry");
+
+    let shape = GridGeometry::try_new(
+        [1, 4],
+        [Length::from_base(1.0), Length::from_base(1.0)],
+        [Length::from_base(0.0), Length::from_base(0.0)],
+        [[1.0, 0.0], [0.0, 1.0]],
+    )
+    .expect("invariant: changed shape remains valid");
+    let shape_field = FieldEnvelope::try_new(&values, shape, time)
+        .expect("invariant: changed shape preserves value count");
+    assert_eq!(
+        first.validate_compatible(&shape_field),
+        Err(FieldError::ShapeMismatch {
+            axis: 0,
+            expected: 2,
+            actual: 1,
+        })
+    );
+
+    let origin = GridGeometry::try_new(
+        [2, 2],
+        [Length::from_base(1.0), Length::from_base(1.0)],
+        [Length::from_base(0.0), Length::from_base(1.0)],
+        [[1.0, 0.0], [0.0, 1.0]],
+    )
+    .expect("invariant: changed origin remains valid");
+    let origin_field = FieldEnvelope::try_new(&values, origin, time)
+        .expect("invariant: changed origin preserves value count");
+    assert_eq!(
+        first.validate_compatible(&origin_field),
+        Err(FieldError::OriginMismatch { axis: 1 })
+    );
+
+    let direction = GridGeometry::try_new(
+        [2, 2],
+        [Length::from_base(1.0), Length::from_base(1.0)],
+        [Length::from_base(0.0), Length::from_base(0.0)],
+        [[0.0, -1.0], [1.0, 0.0]],
+    )
+    .expect("invariant: rotated direction remains valid");
+    let direction_field = FieldEnvelope::try_new(&values, direction, time)
+        .expect("invariant: changed direction preserves value count");
+    assert_eq!(
+        first.validate_compatible(&direction_field),
+        Err(FieldError::DirectionMismatch { row: 0, column: 0 })
     );
 }
 
