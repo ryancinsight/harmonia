@@ -169,16 +169,19 @@ coupling ownership into this repository is recorded in Atlas
 ## Consumers
 
 Atlas's dependency sketch places Harmonia between the Horae and Athena providers
-and the three integrators, `CFDrs`, `helios`, and `kwavers`. At this revision no
-repository in the stack declares a dependency on it: Harmonia is a promoted
-owner whose consumer migrations have not yet run, and the crate is
-`publish = false`.
+and the three integrators, `CFDrs`, `helios`, and `kwavers`. One migration has
+run: `CFDrs` declares Harmonia as a Git dependency and its `cfd-2d` network
+coupling uses `AitkenRelaxation<T>` through the `Relaxation<T>` contract. The
+crate is `publish = false`, so consumers take it by Git source.
 
-That matters for reading the API. Every contract here was derived from the
-coupling mechanics the integrators were each about to reimplement, and the first
-consumer migration is the test of whether the `Partition` contract is the right
-shape. A trait obligation that turns out to be unsatisfiable by a real physics
-solver is a defect in this crate, not in the consumer.
+The coupling loop itself has no consumer yet. `PartitionedPair` and the
+`Partition<T>` contract are still unexercised outside this repository's own
+test suite, and that matters for reading the API. Every contract here was
+derived from the coupling mechanics the integrators were each about to
+reimplement, and the first `Partition` migration is the test of whether that
+contract is the right shape. A trait obligation that turns out to be
+unsatisfiable by a real physics solver is a defect in this crate, not in the
+consumer.
 
 ## Adding a policy
 
