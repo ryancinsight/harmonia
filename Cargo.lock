@@ -5,6 +5,7 @@ version = 4
 [[package]]
 name = "aequitas"
 version = "0.2.0"
+source = "git+https://github.com/ryancinsight/aequitas#d981b260a797a65d99730ab765263e1e88317951"
 dependencies = [
  "eunomia",
  "typenum",
@@ -12,7 +13,8 @@ dependencies = [
 
 [[package]]
 name = "athena-core"
-version = "0.1.0"
+version = "0.1.1"
+source = "git+https://github.com/ryancinsight/athena#e4f765d3d07055aee812f80778a028b73bc75791"
 dependencies = [
  "eunomia",
 ]
@@ -55,13 +57,13 @@ dependencies = [
 
 [[package]]
 name = "bytemuck_derive"
-version = "1.11.0"
+version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f65693059b6b9c588b9f62fed1cedbf0a8b805631457ea162d68f0de186f3de5"
+checksum = "fc0e56a716f1e132ff6bf4bdac1c944a3fcdc1cae65f70a4a2a1ac3b401d2d1f"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 3.0.4",
 ]
 
 [[package]]
@@ -83,6 +85,7 @@ dependencies = [
 [[package]]
 name = "eunomia"
 version = "0.8.0"
+source = "git+https://github.com/ryancinsight/eunomia#35158d17d20160214519811b19167ce385215f3e"
 dependencies = [
  "bytemuck",
  "libm",
@@ -138,6 +141,7 @@ dependencies = [
 [[package]]
 name = "horae"
 version = "0.1.0"
+source = "git+https://github.com/ryancinsight/horae#2ef4273bf22605d61cbeae4cb83437b828588911"
 dependencies = [
  "aequitas",
  "eunomia",
@@ -327,6 +331,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "syn"
+version = "3.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e6275cddf4610d1775e6d1fe9469b2e77d0f39fd98fb7450901b821e0c53649f"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "unicode-ident",
+]
+
+[[package]]
 name = "tempfile"
 version = "3.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -398,236 +413,20 @@ checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
 
 [[package]]
 name = "zerocopy"
-version = "0.8.55"
+version = "0.8.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5a105cd7b140f6eeec8acff2ea38135d3cab283ada58540f629fe51e46696eb"
+checksum = "556764e583adb45a9f8d413c2a147fa7e8d821e48e12b14fd560b607998b75eb"
 dependencies = [
  "zerocopy-derive",
 ]
 
 [[package]]
 name = "zerocopy-derive"
-version = "0.8.55"
+version = "0.8.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0fe976fb70c78cd64cccfe3a6fc142244e8a77b70959b30faf9d0ac37ee228eb"
+checksum = "f2ab42fc20575779bd240faa45f94a74256f755c0fa9e89f0ede20d91d0cdfc1"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.119",
 ]
-
-[[patch.unused]]
-name = "tyche-core"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "hermes-simd"
-version = "0.5.0"
-
-[[patch.unused]]
-name = "proteus"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "themis-topology"
-version = "0.10.1"
-
-[[patch.unused]]
-name = "ritk-core"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "ritk-dicom"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "ritk-image"
-version = "0.2.0"
-
-[[patch.unused]]
-name = "ritk-io"
-version = "0.2.0"
-
-[[patch.unused]]
-name = "ritk-registration"
-version = "0.53.0"
-
-[[patch.unused]]
-name = "ritk-spatial"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "ritk-vtk"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "gaia"
-version = "0.3.0"
-
-[[patch.unused]]
-name = "athena-leto"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "consus-compression"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "consus-core"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "consus-hdf5"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "consus-io"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "consus-npy"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "consus-onnx"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "consus-zarr"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "melinoe"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "hephaestus-core"
-version = "0.18.0"
-
-[[patch.unused]]
-name = "hephaestus-cuda"
-version = "0.18.0"
-
-[[patch.unused]]
-name = "hephaestus-metal"
-version = "0.18.0"
-
-[[patch.unused]]
-name = "hephaestus-rocm"
-version = "0.18.0"
-
-[[patch.unused]]
-name = "hephaestus-wgpu"
-version = "0.18.0"
-
-[[patch.unused]]
-name = "mnemosyne-arena"
-version = "0.3.0"
-
-[[patch.unused]]
-name = "mnemosyne-backend"
-version = "0.5.0"
-
-[[patch.unused]]
-name = "mnemosyne-memory"
-version = "0.6.0"
-
-[[patch.unused]]
-name = "mnemosyne-memory-core"
-version = "0.2.0"
-
-[[patch.unused]]
-name = "moirai-async"
-version = "0.4.0"
-
-[[patch.unused]]
-name = "moirai-core"
-version = "0.4.0"
-
-[[patch.unused]]
-name = "moirai-executor"
-version = "0.4.0"
-
-[[patch.unused]]
-name = "moirai-gpu"
-version = "0.4.0"
-
-[[patch.unused]]
-name = "moirai-http"
-version = "0.4.0"
-
-[[patch.unused]]
-name = "moirai-parallel"
-version = "0.4.0"
-
-[[patch.unused]]
-name = "moirai-runtime"
-version = "0.4.0"
-
-[[patch.unused]]
-name = "moirai-sync"
-version = "0.4.0"
-
-[[patch.unused]]
-name = "leto"
-version = "0.41.0"
-
-[[patch.unused]]
-name = "leto-ops"
-version = "0.41.0"
-
-[[patch.unused]]
-name = "hyperion"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "iris"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "apollo-fft"
-version = "0.25.0"
-
-[[patch.unused]]
-name = "apollo-nufft"
-version = "0.7.0"
-
-[[patch.unused]]
-name = "apollo-sht"
-version = "0.7.0"
-
-[[patch.unused]]
-name = "coeus-autograd"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "coeus-core"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "coeus-leto"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "coeus-nn"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "coeus-ops"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "coeus-optim"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "coeus-tensor"
-version = "0.9.0"
-
-[[patch.unused]]
-name = "asclepius"
-version = "0.1.0"
-
-[[patch.unused]]
-name = "asclepius-coeus"
-version = "0.1.0"
