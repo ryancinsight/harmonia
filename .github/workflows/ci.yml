@@ -51,7 +51,10 @@ jobs:
   # prints the compiler it got. Without that the job silently re-tests 1.97.0
   # and the `rust-version` claim stays unverified.
   msrv:
-    name: MSRV (${{ env.MSRV }})
+    # The floor is a literal here: the `env` context is not available in a job
+    # name, and referencing it makes the whole workflow file fail to parse —
+    # which registers as a run with no jobs rather than a failing check.
+    name: MSRV (1.95)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
