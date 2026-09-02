@@ -142,7 +142,7 @@ type-suffixed identifiers, zero re-export shims.
 - Dependencies: ATLAS-HARMONIA-REPLAY-001 (a real solver is stateful).
 - Risk/change class: `[arch]`, `[minor]`. Effort L.
 
-## ATLAS-HARMONIA-ADRGEN-006 — ADR index names a generator that does not exist [patch] — todo
+## ATLAS-HARMONIA-ADRGEN-006 — ADR index names a generator that does not exist [patch] — done 2026-09-02
 
 - Outcome: the ADR index claim matches the repository, and the check runs in
   CI.
@@ -158,8 +158,15 @@ type-suffixed identifiers, zero re-export shims.
   index, and passes at HEAD; the CI job runs it.
 - Dependencies: none.
 - Risk/change class: `[pm-hygiene]`/`[docs]`, `[patch]`. Effort S.
+- **Closed 2026-09-02 on the merged tree.** Delivered by PR #12 and #14: the
+  generator is atlas's, called through the shared reusable workflow rather
+  than copied here (`.github/workflows/adr-index.yml` → `adr-index-guard.yml`
+  with `strict: true`), and `docs/adr/README.md` names it. The item's
+  preferred branch — commit a generator — was the wrong one: atlas owns the
+  single generator for the fleet, so adopting it is what keeps the index from
+  drifting per repo.
 
-## ATLAS-HARMONIA-GATES-007 — CI gate floor incomplete [patch] — todo
+## ATLAS-HARMONIA-GATES-007 — CI gate floor incomplete [patch] — done 2026-09-02
 
 - Outcome: gates run against the committed lockfile, verify the declared MSRV,
   and cover public-surface compatibility.
@@ -178,6 +185,21 @@ type-suffixed identifiers, zero re-export shims.
   five-minute verification target with the cache restored.
 - Dependencies: none.
 - Risk/change class: `[verification]`, `[patch]`. Effort S.
+- **Delivered 2026-09-02.** Every resolving cargo step in `verify` carries
+  `--locked` (`cargo fmt` does not resolve, so it does not take the flag); a
+  `msrv` job builds `--locked --all-features --all-targets` at the declared
+  1.95 floor; the shared atlas SemVer gate runs informationally on pull
+  requests; `Swatinem/rust-cache` restores on every branch and saves only from
+  `main`, so a pull request cannot poison the shared entry.
+- **The MSRV job requests its floor through `RUSTUP_TOOLCHAIN`, not the setup
+  action**, because the committed `rust-toolchain.toml` pin (1.97.0) outranks
+  what the action selects — the obvious spelling would have silently re-tested
+  1.97.0 and left the claim unverified. The job prints `rustc --version` and
+  fails if it is not the floor, so the check cannot pass vacuously.
+- Evidence: the floor was verified locally before the job was written —
+  `RUSTUP_TOOLCHAIN=1.95.0 cargo check --locked --all-features --all-targets`
+  compiles harmonia and its first-party graph clean, so `rust-version = 1.95`
+  is a true claim rather than an aspiration.
 
 ## ATLAS-HARMONIA-ALLOWATTR-008 — Test-harness blanket allow [patch] — todo
 
