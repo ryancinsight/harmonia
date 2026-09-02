@@ -196,6 +196,13 @@ type-suffixed identifiers, zero re-export shims.
   what the action selects — the obvious spelling would have silently re-tested
   1.97.0 and left the claim unverified. The job prints `rustc --version` and
   fails if it is not the floor, so the check cannot pass vacuously.
+- **Follow-up 2026-09-02 (review finding).** `Swatinem/rust-cache` builds its
+  key with `cargo metadata`, run without `--locked`; on a lockfile that has
+  drifted from the manifests cargo rewrites it in that step, and every
+  `--locked` step after it would verify a lockfile that is not the committed
+  one — the gate passing for the wrong reason. Each cache step is now followed
+  by `git diff --exit-code -- Cargo.lock`, so the assumption the `--locked`
+  flags rest on is asserted rather than trusted.
 - Evidence: the floor was verified locally before the job was written —
   `RUSTUP_TOOLCHAIN=1.95.0 cargo check --locked --all-features --all-targets`
   compiles harmonia and its first-party graph clean, so `rust-version = 1.95`

@@ -28,6 +28,13 @@ jobs:
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           save-if: ${{ github.ref == 'refs/heads/main' }}
+      # The cache action builds its key with `cargo metadata`, which it runs
+      # without `--locked`. On a lockfile that has drifted from the manifests
+      # cargo rewrites it there, and every `--locked` step below would then be
+      # verifying a lockfile that is not the committed one — the check passing
+      # for the wrong reason. Assert the setup left it alone.
+      - name: Cache setup left the lockfile alone
+        run: git diff --exit-code -- Cargo.lock
       - name: Format
         run: cargo fmt --all -- --check
       - name: Feature check
@@ -68,6 +75,13 @@ jobs:
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           save-if: ${{ github.ref == 'refs/heads/main' }}
+      # The cache action builds its key with `cargo metadata`, which it runs
+      # without `--locked`. On a lockfile that has drifted from the manifests
+      # cargo rewrites it there, and every `--locked` step below would then be
+      # verifying a lockfile that is not the committed one — the check passing
+      # for the wrong reason. Assert the setup left it alone.
+      - name: Cache setup left the lockfile alone
+        run: git diff --exit-code -- Cargo.lock
       - name: Show the compiler under test
         run: |
           rustc --version
