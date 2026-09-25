@@ -32,10 +32,11 @@ implied by this boundary.
 ## Phase 0 contract
 
 `PartitionedPair<M, T, FIRST_SUBSTEPS, SECOND_SUBSTEPS>` advances two
-partitions from the same window-start snapshot. Each fixed-point iteration
-replays both partitions independently, transfers their exported interface
-values, checks the raw fixed-point defect, and applies relaxation only when
-another iteration is required.
+partitions from the same window-start snapshot, including partition-owned
+replay checkpoints. Each fixed-point iteration restores and advances both
+partitions independently, transfers their exported interface values, checks
+the raw fixed-point defect, and applies relaxation only when another iteration
+is required.
 
 Caller states and interface guesses change only on convergence. Every error,
 including iteration-budget exhaustion, leaves them unchanged. Workspace
@@ -58,6 +59,10 @@ struct Driven {
 
 impl Partition<f64> for Driven {
     type Error = core::convert::Infallible;
+    type Checkpoint = ();
+
+    fn checkpoint(&self) -> Self::Checkpoint {}
+    fn restore(&mut self, _checkpoint: &Self::Checkpoint) {}
 
     fn state_dimension(&self) -> usize { 1 }
     fn input_dimension(&self) -> usize { 1 }

@@ -70,8 +70,6 @@ so each step's evidence feeds the next.
       in parallel with the above.
 - [ ] `ATLAS-HARMONIA-TRANSFER-004` — dimension-changing coupled solve plus
       the conservation/consistency property.
-- [ ] `ATLAS-HARMONIA-REPLAY-001` — ADR first (checkpoint seam vs. required
-      statelessness), then the load-bearing-internal-state regression.
 - [ ] `ATLAS-HARMONIA-CONSUME-005` — gated on -001.
 - [ ] `ATLAS-HARMONIA-ALLOWATTR-008` — fold into whichever test-tree item
       lands first.

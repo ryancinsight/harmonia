@@ -3,6 +3,8 @@
 - Status: Accepted
 - Change class: minor, architectural
 - Date: 2026-07-20
+- Revision: 2026-09-24 — ADR 0004 adds partition-owned replay checkpoints so
+  every iteration evaluates the same fixed map.
 
 ## Context
 
@@ -26,8 +28,10 @@ second source of truth.
 Phase 0 is one `no_std + alloc` crate. It owns a two-partition synchronous
 Jacobi fixed-point iteration over one time window:
 
-1. Snapshot caller-owned states and interface guesses.
-2. Restore both partition work states from the snapshots.
+1. Snapshot caller-owned states, interface guesses, and each partition's
+   internally owned replay state.
+2. Restore both partition checkpoints and caller-state work buffers from the
+   window-start snapshots.
 3. Advance each partition over the window using its const-generic Horae
    subcycle plan.
 4. Export and transfer both interface states.

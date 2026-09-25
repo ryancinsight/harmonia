@@ -28,6 +28,11 @@ struct Decay {
 
 impl Partition<f64> for Decay {
     type Error = Infallible;
+    type Checkpoint = ();
+
+    fn checkpoint(&self) -> Self::Checkpoint {}
+
+    fn restore(&mut self, _checkpoint: &Self::Checkpoint) {}
 
     fn state_dimension(&self) -> usize {
         1
