@@ -5,10 +5,22 @@ use super::Substep;
 /// Harmonia validates every slice against the reported dimensions before
 /// invoking these methods. Reported dimensions must remain invariant for the
 /// lifetime of the partition. Implementations own their numerical method and
-/// may reuse internal workspaces, but must not retain any borrowed slice.
+/// may reuse internal workspaces, but must not retain any borrowed slice. A
+/// checkpoint must contain every internally owned value whose mutation during
+/// [`advance`](Self::advance) or [`export`](Self::export) can affect a later
+/// advance or export result.
 pub trait Partition<T> {
     /// Partition-specific failure.
     type Error;
+
+    /// Owned internal state required to replay a coupling window.
+    type Checkpoint;
+
+    /// Capture the partition's internal replay state.
+    fn checkpoint(&self) -> Self::Checkpoint;
+
+    /// Restore internal state captured by [`checkpoint`](Self::checkpoint).
+    fn restore(&mut self, checkpoint: &Self::Checkpoint);
 
     /// Number of scalar state entries.
     fn state_dimension(&self) -> usize;

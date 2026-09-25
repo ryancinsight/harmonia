@@ -2,16 +2,156 @@
 
 mod support;
 
+use core::fmt::Debug;
+
 use athena_core::ConvergencePolicy;
 use harmonia::{
-    CouplingError, FixedRelaxation, FullRelaxation, IdentityTransfer, PairComponents,
-    PairWorkspace, PartitionedPair,
+    CouplingError, CouplingReport, FixedRelaxation, FullRelaxation, IdentityTransfer,
+    PairComponents, PairModel, PairWorkspace, Partition, PartitionedPair,
 };
 
 use support::{
-    ConstantOutput, LastObserver, LinearPartition, euclidean_error, exact_interface, instant,
-    window,
+    ConstantOutput, CountingPartition, LastObserver, LinearPartition, euclidean_error,
+    exact_interface, instant, window,
 };
+
+fn linear_partition_for_step(partition: LinearPartition<f64>, step: u32) -> LinearPartition<f64> {
+    let weight = f64::from(step);
+    LinearPartition {
+        source: weight * partition.source,
+        gain: weight * partition.gain,
+    }
+}
+
+type CountingPair = PartitionedPair<
+    PairComponents<
+        CountingPartition,
+        CountingPartition,
+        IdentityTransfer,
+        IdentityTransfer,
+        FullRelaxation,
+    >,
+    f64,
+    1,
+    1,
+>;
+
+type WindowValues = [[f64; 1]; 4];
+const INITIAL_WINDOW: WindowValues = [[0.25], [-0.5], [0.0], [0.0]];
+
+fn solve_linear_window<M>(
+    pair: &mut PartitionedPair<M, f64, 1, 1>,
+    values: &mut WindowValues,
+    policy: &ConvergencePolicy<f64>,
+) -> CouplingReport<f64>
+where
+    M: PairModel<f64>,
+    <M::First as Partition<f64>>::Error: Debug,
+    <M::Second as Partition<f64>>::Error: Debug,
+{
+    let [first_state, second_state, first_input, second_input] = values;
+    pair.solve_window(
+        instant(),
+        window(0.5),
+        first_state,
+        second_state,
+        first_input,
+        second_input,
+        policy,
+        &mut LastObserver::default(),
+    )
+    .expect("the checkpointed linear map converges")
+}
+
+fn assert_exact_values(actual: [f64; 4], expected: [f64; 4]) {
+    assert_eq!(actual.map(f64::to_bits), expected.map(f64::to_bits));
+}
+
+fn assert_replayed_window(
+    pair: &CountingPair,
+    reports: [CouplingReport<f64>; 2],
+    actual: WindowValues,
+    stateless: WindowValues,
+    expected: [f64; 4],
+    steps: [u32; 2],
+) {
+    assert_eq!(reports[0].iterations, 3);
+    assert_eq!(reports[0].residual_norm.to_bits(), 0.0_f64.to_bits());
+    let actual = actual.map(|entry| entry[0]);
+    assert_exact_values(actual, expected);
+    assert_exact_values(actual, stateless.map(|entry| entry[0]));
+    assert_eq!(pair.model().first().steps, steps[0]);
+    assert_eq!(pair.model().second().steps, steps[1]);
+}
+
+#[test]
+fn internal_partition_state_replays_one_fixed_map() {
+    let first = LinearPartition {
+        source: 0.5_f64,
+        gain: 0.0,
+    };
+    let second = LinearPartition {
+        source: -0.25_f64,
+        gain: 0.125,
+    };
+    let model = PairComponents::new(
+        CountingPartition {
+            source: first.source,
+            gain: first.gain,
+            steps: 3,
+        },
+        CountingPartition {
+            source: second.source,
+            gain: second.gain,
+            steps: 6,
+        },
+        IdentityTransfer,
+        IdentityTransfer,
+        FullRelaxation,
+    );
+    let mut pair = PartitionedPair::for_model(model).expect("invariant: valid pair dimensions");
+    let mut actual = INITIAL_WINDOW;
+    let policy = ConvergencePolicy::new(0.0, 0.0, 8).expect("invariant: valid policy");
+    let first_report = solve_linear_window(&mut pair, &mut actual, &policy);
+
+    let stateless_model = PairComponents::new(
+        linear_partition_for_step(first, 4),
+        linear_partition_for_step(second, 7),
+        IdentityTransfer,
+        IdentityTransfer,
+        FullRelaxation,
+    );
+    let mut stateless_pair =
+        PartitionedPair::for_model(stateless_model).expect("invariant: valid pair dimensions");
+    let mut stateless = INITIAL_WINDOW;
+    let first_stateless_report = solve_linear_window(&mut stateless_pair, &mut stateless, &policy);
+
+    // Successors 4 and 7 reach exact (-53/64, 5/4) and repeat it on evaluation three.
+    assert_replayed_window(
+        &pair,
+        [first_report, first_stateless_report],
+        actual,
+        stateless,
+        [1.25, -0.828_125, -0.828_125, 1.25],
+        [4, 7],
+    );
+
+    *stateless_pair.model_mut().first_mut() = linear_partition_for_step(first, 5);
+    *stateless_pair.model_mut().second_mut() = linear_partition_for_step(second, 8);
+
+    let second_report = solve_linear_window(&mut pair, &mut actual, &policy);
+    let second_stateless_report = solve_linear_window(&mut stateless_pair, &mut stateless, &policy);
+
+    // Successors 5 and 8 similarly yield the exact point (-37/64, 5/2).
+    assert_replayed_window(
+        &pair,
+        [second_report, second_stateless_report],
+        actual,
+        stateless,
+        [2.5, -0.578_125, -0.578_125, 2.5],
+        [5, 8],
+    );
+}
 
 #[test]
 fn contraction_residual_bounds_fixed_point_error() {

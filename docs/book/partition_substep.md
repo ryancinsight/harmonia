@@ -225,12 +225,15 @@ The `Partition<T>` trait is the whole contract between Harmonia and your physics
 
 | Method | Obligation |
 | --- | --- |
+| `Checkpoint` | own every internal value needed to replay the partition from the window start |
+| `checkpoint` | capture internal replay state before the first fixed-point evaluation |
+| `restore` | reinstate that state exactly before every fixed-point evaluation |
 | `state_dimension`, `input_dimension`, `output_dimension` | invariant for the lifetime of the partition; the workspace is sized from them once |
 | `advance` | advance `state` across one positive substep using `input` held fixed |
 | `export` | write the interface values implied by `state` |
 | `Error` | the partition's own typed failure, surfaced verbatim |
 
-Three obligations do not appear in the signatures.
+Two obligations do not appear in the signatures.
 
 Dimensions must not change after construction, because `PairWorkspace::for_model`
 allocates against them once and every later slice is validated against those
@@ -239,8 +242,10 @@ lengths.
 No borrowed slice may be retained. Harmonia hands out `&mut [T]` into its own
 buffers and reuses them across iterations.
 
-And, as above, `advance` must be replayable: same snapshot state, same input,
-same substep — same result.
+The checkpoint makes replay explicit: the same caller state, checkpoint,
+interface input, and substep must produce the same result. Stateless partitions
+use `()` and still implement both methods, so stateful implementations cannot
+silently inherit an incomplete no-op.
 
 Dimension agreement across the pair is checked rather than assumed. Workspace
 construction rejects a zero-sized state or interface, and it rejects a transfer

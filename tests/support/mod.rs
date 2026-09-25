@@ -14,11 +14,68 @@ pub struct LinearPartition<T> {
     pub gain: T,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct CountingPartition {
+    pub source: f64,
+    pub gain: f64,
+    pub steps: u32,
+}
+
+impl Partition<f64> for CountingPartition {
+    type Error = Infallible;
+    type Checkpoint = u32;
+
+    fn checkpoint(&self) -> Self::Checkpoint {
+        self.steps
+    }
+
+    fn restore(&mut self, checkpoint: &Self::Checkpoint) {
+        self.steps = *checkpoint;
+    }
+
+    fn state_dimension(&self) -> usize {
+        1
+    }
+
+    fn input_dimension(&self) -> usize {
+        1
+    }
+
+    fn output_dimension(&self) -> usize {
+        1
+    }
+
+    fn advance(
+        &mut self,
+        substep: Substep<f64>,
+        state: &mut [f64],
+        input: &[f64],
+    ) -> Result<(), Self::Error> {
+        self.steps = self
+            .steps
+            .checked_add(1)
+            .expect("invariant: the test iteration budget fits in u32");
+        let step = *substep.size().as_time().as_base();
+        state[0] += step * f64::from(self.steps) * (self.source + self.gain * input[0]);
+        Ok(())
+    }
+
+    fn export(&self, state: &[f64], output: &mut [f64]) -> Result<(), Self::Error> {
+        output.copy_from_slice(state);
+        Ok(())
+    }
+}
+
 impl<T> Partition<T> for LinearPartition<T>
 where
     T: RealField,
 {
     type Error = Infallible;
+    type Checkpoint = ();
+
+    fn checkpoint(&self) -> Self::Checkpoint {}
+
+    fn restore(&mut self, _checkpoint: &Self::Checkpoint) {}
 
     fn state_dimension(&self) -> usize {
         1
@@ -59,6 +116,11 @@ where
     T: RealField,
 {
     type Error = Infallible;
+    type Checkpoint = ();
+
+    fn checkpoint(&self) -> Self::Checkpoint {}
+
+    fn restore(&mut self, _checkpoint: &Self::Checkpoint) {}
 
     fn state_dimension(&self) -> usize {
         1
@@ -97,6 +159,11 @@ pub struct Dimensions {
 
 impl Partition<f64> for Dimensions {
     type Error = Infallible;
+    type Checkpoint = ();
+
+    fn checkpoint(&self) -> Self::Checkpoint {}
+
+    fn restore(&mut self, _checkpoint: &Self::Checkpoint) {}
 
     fn state_dimension(&self) -> usize {
         self.state

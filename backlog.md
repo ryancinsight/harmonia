@@ -9,37 +9,6 @@ Measured baseline at that revision: 1 package, 1647 src LOC, 25 test functions,
 production `unwrap()`, zero `dyn` sites, zero files over 500 lines, zero
 type-suffixed identifiers, zero re-export shims.
 
-## ATLAS-HARMONIA-REPLAY-001 — Partition replay is not state-complete [minor][arch] — todo
-
-- Outcome: a fixed-point iteration replays the *whole* partition from the
-  window-start snapshot, not only the caller's state slice, so the iterated map
-  `F` is the same map on every iteration for a partition that carries internal
-  state.
-- Evidence of the gap: `evaluate` restores `first_work`/`second_work` from the
-  snapshots (`src/coupling/pair/algorithm.rs:197`) and then calls
-  `advance_window` on `self.model.first_mut()` (`:202`), but
-  `Partition::advance` takes `&mut self` and the contract explicitly permits
-  internal workspaces (`src/partition/contract.rs:8`). Nothing restores that
-  internal state between iterations, so a multistep integrator, a retained
-  sub-iteration cache, or an internal accumulator makes iteration `k+1` a
-  different map than iteration `k`. ADR 0001's contraction argument
-  (`docs/adr/0001-partitioned-coupling-boundary.md:65`) assumes one fixed `F`.
-- Scope: the `Partition<T>` contract, the replay step of `PartitionedPair`, an
-  ADR recording the chosen seam, and the tests below.
-- Non-goals: waveform interpolation, Gauss-Seidel ordering, more than two
-  partitions, or any change to Horae's subcycle law.
-- Acceptance oracle: a test partition whose internal state is load-bearing
-  (an internal step counter that changes `advance`'s result) converges to the
-  same interface fixed point as the equivalent stateless partition, to a
-  derived tolerance; the same test fails against today's loop. Either the trait
-  gains an explicit checkpoint/restore obligation that the loop calls, or the
-  contract documents statelessness as a *required* invariant and the loop
-  cannot silently violate it.
-- Dependencies: none. Decision must precede ATLAS-HARMONIA-CONSUME-005, since
-  a real solver is the class of partition that carries internal state.
-- Risk/change class: `[correctness]`, `[minor]` if the seam is additive on the
-  trait, `[major]` if a required method lands; `[arch]` either way. Effort M.
-
 ## ATLAS-HARMONIA-TXSCOPE-002 — Transaction scope excludes model state [patch] — todo
 
 - Outcome: the transaction guarantee states exactly what it covers, and a

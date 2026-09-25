@@ -69,6 +69,9 @@ where
 
     /// Advance one coupling window transactionally.
     ///
+    /// Both partitions and caller state work buffers are restored from their
+    /// window-start checkpoints before every fixed-point evaluation.
+    ///
     /// The four caller slices are committed together only after the raw
     /// fixed-point defect meets `policy`. Every error leaves all four slices
     /// unchanged.
@@ -103,9 +106,12 @@ where
         O: IterationObserver<T>,
     {
         self.snapshot(first_state, second_state, first_input, second_input)?;
+        let first_checkpoint = self.model.first().checkpoint();
+        let second_checkpoint = self.model.second().checkpoint();
 
         for iteration in 1..=policy.max_iterations() {
-            let (residual_norm, candidate_norm) = self.evaluate(start, window)?;
+            let (residual_norm, candidate_norm) =
+                self.evaluate(start, window, &first_checkpoint, &second_checkpoint)?;
             let threshold = policy.threshold(candidate_norm);
 
             if policy.should_check(iteration) {
@@ -189,10 +195,14 @@ where
         &mut self,
         start: Instant<T>,
         window: StepSize<T>,
+        first_checkpoint: &<M::First as Partition<T>>::Checkpoint,
+        second_checkpoint: &<M::Second as Partition<T>>::Checkpoint,
     ) -> Result<
         (T, T),
         CouplingError<T, <M::First as Partition<T>>::Error, <M::Second as Partition<T>>::Error>,
     > {
+        self.model.first_mut().restore(first_checkpoint);
+        self.model.second_mut().restore(second_checkpoint);
         self.workspace
             .first_work
             .copy_from_slice(&self.workspace.first_initial);
