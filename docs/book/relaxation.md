@@ -124,13 +124,20 @@ two vector operations per iteration and no extra evaluation of `F`. Its
 configuration validates positive finite bounds and a positive finite
 denominator tolerance in the native precision of `T`.
 
+That history belongs to one coupling window. A new `solve_window` call clears
+the previous residual and factor lengths after validating the four caller
+slices, so the first relaxed update uses the clamped unit factor. Later
+iterations in the same window use the secant history. Clearing lengths retains
+the vectors' capacity: retrying after `NotConverged` does not carry a secant
+across a discontinuous caller state, and it does not add allocation churn.
+
 ## What Harmonia provides
 
 Three policies implement `Relaxation<T>`.
 
 | Policy | Weight | Size | Failure |
 | --- | --- | --- | --- |
-| `AitkenRelaxation<T>` | bounded componentwise secant factors | retained history and reusable workspaces | non-finite input, factor, or update |
+| `AitkenRelaxation<T>` | bounded componentwise secant factors | per-window history and reusable workspaces | non-finite input, factor, or update |
 | `FullRelaxation` | \\(\omega = 1\\) | zero-sized | non-finite candidate entry |
 | `FixedRelaxation<T>` | validated \\(\omega \in (0, 1]\\) | one scalar, `repr(transparent)` | non-finite updated entry |
 
@@ -160,7 +167,8 @@ would otherwise poison the interface silently and reappear several iterations
 later as a non-finite metric with no indication of where it started.
 
 One policy serves both interface blocks: the pair model exposes one mutable
-`relaxation_mut()`, and the loop passes both guesses to one `update_pair` call.
+`relaxation_mut()`, begins it once per window, and passes both guesses to one
+`update_pair` call per non-converged iteration.
 This matters for stateful policies because a coupled defect and its history are
 properties of the stacked interface, not of either block in isolation. The
 fixed policy applies the same weight to both blocks, while Aitken computes one

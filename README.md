@@ -38,10 +38,14 @@ partitions independently, transfers their exported interface values, checks
 the raw fixed-point defect, and applies relaxation only when another iteration
 is required.
 
-Caller states and interface guesses change only on convergence. Every error,
-including iteration-budget exhaustion, leaves them unchanged. Workspace
-allocation occurs during construction; repeated solves with Harmonia's
-borrowed transfer policies reuse fixed boxed slices without allocation.
+The four caller slices — two states and two interface guesses — change only on
+convergence. Every error, including iteration-budget exhaustion, leaves those
+slices unchanged. The model is outside that transaction: partitions may retain
+the state of the last attempted evaluation. Stateful relaxation history is
+scoped to one window, so a new solve starts Aitken from its clamped unit factor
+while reusing previously allocated capacity. Workspace allocation occurs during
+construction; repeated solves with Harmonia's borrowed transfer policies reuse
+fixed boxed slices without allocation.
 
 ```rust
 use aequitas::systems::si::quantities::Time;

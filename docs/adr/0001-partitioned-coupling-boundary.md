@@ -5,6 +5,7 @@
 - Date: 2026-07-20
 - Revision: 2026-09-24 — ADR 0004 adds partition-owned replay checkpoints so
   every iteration evaluates the same fixed map.
+- Revision: 2026-09-28 — scope transactions and reset per-window relaxation.
 
 ## Context
 
@@ -30,14 +31,15 @@ Jacobi fixed-point iteration over one time window:
 
 1. Snapshot caller-owned states, interface guesses, and each partition's
    internally owned replay state.
-2. Restore both partition checkpoints and caller-state work buffers from the
+2. Begin a fresh relaxation window without discarding reusable capacity.
+3. Restore both partition checkpoints and caller-state work buffers from the
    window-start snapshots.
-3. Advance each partition over the window using its const-generic Horae
+4. Advance each partition over the window using its const-generic Horae
    subcycle plan.
-4. Export and transfer both interface states.
-5. Check the unrelaxed Euclidean defect `r = ||F(x) - x||`.
-6. Commit work states and `F(x)` only when Athena's policy accepts `r`.
-7. Otherwise compute `x <- x + omega (F(x) - x)` and repeat.
+5. Export and transfer both interface states.
+6. Check the unrelaxed Euclidean defect `r = ||F(x) - x||`.
+7. Commit work states and `F(x)` only when Athena's policy accepts `r`.
+8. Otherwise compute `x <- x + omega (F(x) - x)` and repeat.
 
 Transfer implementations return `Cow<'a, [T]>`. Identity transfer returns the
 source borrow; index transfer writes caller-owned scratch and returns that
@@ -55,8 +57,8 @@ history explicitly.
 
 ### Transaction theorem
 
-**Claim.** If `solve_window` returns an error, every caller-provided state and
-interface slice equals its entry value.
+**Claim.** On error, the first and second state and input slices equal their
+entry values.
 
 **Proof.** The algorithm copies caller slices into workspace snapshots and
 mutates only workspace buffers during every iteration. The only writes to
@@ -64,6 +66,12 @@ caller slices occur together in the convergence branch immediately before the
 success report. Every error path returns before that branch. Therefore an
 error performs no caller-visible write. The regression test compares every
 slice bit-for-bit after forced nonconvergence.
+
+The claim excludes the pair model. A partition is restored before each
+evaluation, then may retain the last attempted model state after success or
+error. A new `solve_window` invokes `begin_window` after slice validation, so
+abandoned Aitken history cannot seed the next window. Model rollback remains
+outside this decision, as recorded in ADR 0004.
 
 ### Contraction residual theorem
 

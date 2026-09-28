@@ -2,12 +2,19 @@ use super::RelaxationError;
 
 /// Fixed-point update policy for a coupled interface pair.
 pub trait Relaxation<T> {
+    /// Begin a coupling window with no history from an earlier window.
+    ///
+    /// Stateful policies reset the numerical history used to relate successive
+    /// fixed-point iterations. Allocated workspace capacity may be retained.
+    /// Stateless policies use this default no-op implementation.
+    fn begin_window(&mut self) {}
+
     /// Update both current interfaces toward their candidates in place.
     ///
     /// The two interfaces are presented together so a stateful policy can
     /// derive one update from the complete coupled defect and retain history
-    /// across iterations. The implementation must update neither slice when
-    /// it returns an error.
+    /// across iterations within the current window. The implementation must
+    /// update neither slice when it returns an error.
     ///
     /// # Errors
     ///

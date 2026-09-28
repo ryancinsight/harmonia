@@ -6,9 +6,9 @@ use super::{InvalidAitkenRelaxation, Relaxation, RelaxationError, slice::validat
 
 /// Stateful componentwise Aitken \(\Delta^2\) relaxation for a coupled pair.
 ///
-/// The policy stacks both interface residuals into one history vector. The
-/// first update uses unit relaxation. Later updates use the Irons--Tuck
-/// componentwise secant estimate
+/// The policy stacks both interface residuals into one history vector. Each
+/// window starts with unit relaxation. Later updates within that window use
+/// the Irons--Tuck componentwise secant estimate
 /// \(\omega_i=-\omega_{i,k-1}r_{i,k-1}/(r_{i,k}-r_{i,k-1})\), retaining the
 /// previous factor when the residual difference is within the configured
 /// tolerance. Every factor is clamped to the configured interval.
@@ -181,6 +181,11 @@ impl<T> Relaxation<T> for AitkenRelaxation<T>
 where
     T: RealField,
 {
+    fn begin_window(&mut self) {
+        self.previous_residual.clear();
+        self.previous_relaxation.clear();
+    }
+
     fn update_pair(
         &mut self,
         first_current: &mut [T],

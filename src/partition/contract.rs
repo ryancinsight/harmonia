@@ -8,7 +8,10 @@ use super::Substep;
 /// may reuse internal workspaces, but must not retain any borrowed slice. A
 /// checkpoint must contain every internally owned value whose mutation during
 /// [`advance`](Self::advance) or [`export`](Self::export) can affect a later
-/// advance or export result.
+/// advance or export result. Harmonia restores the checkpoint before each
+/// fixed-point evaluation so every iteration applies the same map. The
+/// checkpoint does not roll the partition back when `solve_window` returns;
+/// model state may therefore reflect the last attempted evaluation on error.
 pub trait Partition<T> {
     /// Partition-specific failure.
     type Error;

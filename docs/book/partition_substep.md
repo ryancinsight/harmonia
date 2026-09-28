@@ -212,6 +212,13 @@ as it was and the caller can retry with a smaller window rather than having to
 detect and undo a partial advance. The regression test forces non-convergence and
 compares all four slices bit-for-bit.
 
+That transaction covers those four slices, not the pair model. Partitions may
+retain the state of the final attempted evaluation after an error. Their
+checkpoints make every fixed-point evaluation replay the same window-start map;
+they do not roll the model back when `solve_window` returns. A fresh call does
+reset relaxation history, so an abandoned Aitken secant cannot cross the window
+boundary.
+
 What gets committed on success is worth being precise about: the states are the
 work states produced by the accepted evaluation, and the interface values are
 \\(F(x)\\), not the relaxed iterate \\(x\\). Those differ by the defect, which is

@@ -9,37 +9,6 @@ Measured baseline at that revision: 1 package, 1647 src LOC, 25 test functions,
 production `unwrap()`, zero `dyn` sites, zero files over 500 lines, zero
 type-suffixed identifiers, zero re-export shims.
 
-## ATLAS-HARMONIA-TXSCOPE-002 — Transaction scope excludes model state [patch] — todo
-
-- Outcome: the transaction guarantee states exactly what it covers, and a
-  failed window cannot silently seed the next one.
-- Evidence of the gap: ADR 0001's transaction theorem
-  (`docs/adr/0001-partitioned-coupling-boundary.md:54`) and `README.md:23`
-  say every error leaves caller state unchanged — true for the four caller
-  slices, which are written only in `commit`
-  (`src/coupling/pair/algorithm.rs:295`). But `solve_window` mutates the model
-  on every error path: partitions advance through `first_mut()`, and the
-  relaxation policy is updated once per non-converged iteration
-  (`:285`). `AitkenRelaxation` commits history inside `update_pair`
-  (`src/relaxation/aitken.rs:161`), so a window that exhausts its budget leaves
-  a residual/factor history from a discarded iterate, and the next
-  `solve_window` computes its first secant factor across that discontinuity.
-  `AitkenRelaxation` exposes no reset.
-- Scope: `AitkenRelaxation` (a reset or window-boundary contract), the
-  `Relaxation<T>` and `Partition<T>` doc contracts, ADR 0001's theorem
-  statement, `README.md`, and `docs/book/relaxation.md`.
-- Non-goals: making the model itself transactional (that is
-  ATLAS-HARMONIA-REPLAY-001's decision).
-- Acceptance oracle: a value-semantic test that runs a window to
-  `NotConverged` with `AitkenRelaxation`, then runs a fresh window, and asserts
-  the second window's first update equals the documented contract (either a
-  fresh unit factor after an explicit reset, or the retained factor if
-  retention is the decided semantics). The theorem text names caller slices and
-  model state separately.
-- Dependencies: none.
-- Risk/change class: `[correctness]`/`[docs]`, `[patch]` for the doc scoping,
-  `[minor]` if a `reset` method is added. Effort S.
-
 ## ATLAS-HARMONIA-ERRPATHS-003 — Seven of eight error variants unverified [patch] — todo
 
 - Outcome: the transaction theorem is verified on every reachable error path,
