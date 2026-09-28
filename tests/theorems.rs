@@ -11,8 +11,8 @@ use harmonia::{
 };
 
 use support::{
-    ConstantOutput, CountingPartition, LastObserver, LinearPartition, euclidean_error,
-    exact_interface, instant, window,
+    ConstantOutput, CountingPartition, LastObserver, LinearPartition, Scaffold, euclidean_error,
+    exact_interface, instant, linear_pair, solve, window,
 };
 
 fn linear_partition_for_step(partition: LinearPartition<f64>, step: u32) -> LinearPartition<f64> {
@@ -163,47 +163,23 @@ fn contraction_residual_bounds_fixed_point_error() {
         source: -0.5_f64,
         gain: -0.3,
     };
-    let model = PairComponents::new(
-        first,
-        second,
-        IdentityTransfer,
-        IdentityTransfer,
-        FullRelaxation,
-    );
-    let workspace = PairWorkspace::for_model(&model).expect("invariant: compatible dimensions");
-    let mut pair = PartitionedPair::<_, f64, 2, 3>::new(model, workspace)
-        .expect("invariant: positive subcycle ratios");
-    let mut first_state = [0.4];
-    let mut second_state = [-0.1];
-    let initial_first = first_state[0];
-    let initial_second = second_state[0];
-    let mut first_input = [0.0];
-    let mut second_input = [0.0];
+    let mut pair = linear_pair::<f64, 2, 3>(first, second);
+    let mut scaffold = Scaffold::new(0.4, -0.1);
     let policy = ConvergencePolicy::new(1.0e-12, 1.0e-12, 64).expect("invariant: valid policy");
     let mut observer = LastObserver::default();
 
-    let report = pair
-        .solve_window(
-            instant(),
-            window(0.5),
-            &mut first_state,
-            &mut second_state,
-            &mut first_input,
-            &mut second_input,
-            &policy,
-            &mut observer,
-        )
+    let report = solve(&mut pair, 0.5, &policy, &mut scaffold, &mut observer)
         .expect("contractive pair converges");
 
-    let exact = exact_interface(initial_first, initial_second, 0.5, first, second);
-    let actual = [first_input[0], second_input[0]];
+    let exact = exact_interface(0.4, -0.1, 0.5, first, second);
+    let actual = [scaffold.first_input[0], scaffold.second_input[0]];
     let contraction = (0.5 * first.gain).abs().max((0.5 * second.gain).abs());
     let rounding = 32.0 * f64::EPSILON * (1.0 + exact[0].abs() + exact[1].abs());
     let theorem_bound = report.residual_norm / (1.0 - contraction) + rounding;
 
     assert!(euclidean_error(actual, exact) <= theorem_bound);
-    assert!((first_state[0] - exact[1]).abs() <= theorem_bound);
-    assert!((second_state[0] - exact[0]).abs() <= theorem_bound);
+    assert!((scaffold.first_state[0] - exact[1]).abs() <= theorem_bound);
+    assert!((scaffold.second_state[0] - exact[0]).abs() <= theorem_bound);
     assert_eq!(observer.count, report.iterations);
 }
 

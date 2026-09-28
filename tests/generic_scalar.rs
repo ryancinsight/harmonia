@@ -2,17 +2,20 @@
 
 mod support;
 
-use athena_core::{ConvergencePolicy, NoObserver};
+use athena_core::ConvergencePolicy;
 use eunomia::RealField;
-use harmonia::{FullRelaxation, IdentityTransfer, PairComponents, PairWorkspace, PartitionedPair};
 
-use support::{LinearPartition, instant, window};
+use support::{LinearPartition, Scaffold, solve_linear_pair};
 
 fn solve_constant_pair<T>() -> [T; 2]
 where
     T: RealField,
 {
-    let model = PairComponents::new(
+    let mut scaffold = Scaffold::new(T::from_f64(0.25), T::from_f64(0.75));
+    let policy = ConvergencePolicy::new(T::from_f64(0.0), T::from_f64(0.0), 2)
+        .expect("invariant: valid policy");
+
+    solve_linear_pair::<T, 2, 3>(
         LinearPartition {
             source: T::from_f64(1.0),
             gain: T::from_f64(0.0),
@@ -21,32 +24,13 @@ where
             source: T::from_f64(-2.0),
             gain: T::from_f64(0.0),
         },
-        IdentityTransfer,
-        IdentityTransfer,
-        FullRelaxation,
-    );
-    let workspace = PairWorkspace::for_model(&model).expect("invariant: compatible dimensions");
-    let mut pair = PartitionedPair::<_, T, 2, 3>::new(model, workspace).expect("valid subcycles");
-    let mut first_state = [T::from_f64(0.25)];
-    let mut second_state = [T::from_f64(0.75)];
-    let mut first_input = [T::from_f64(0.0)];
-    let mut second_input = [T::from_f64(0.0)];
-    let policy = ConvergencePolicy::new(T::from_f64(0.0), T::from_f64(0.0), 2)
-        .expect("invariant: valid policy");
-
-    pair.solve_window(
-        instant(),
-        window(T::from_f64(0.5)),
-        &mut first_state,
-        &mut second_state,
-        &mut first_input,
-        &mut second_input,
+        T::from_f64(0.5),
         &policy,
-        &mut NoObserver,
+        &mut scaffold,
     )
     .expect("constant pair converges");
 
-    [first_state[0], second_state[0]]
+    [scaffold.first_state[0], scaffold.second_state[0]]
 }
 
 fn assert_native_scalar_result<T>()

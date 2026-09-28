@@ -1,6 +1,6 @@
 use eunomia::NumericElement;
 
-use super::{Relaxation, RelaxationError};
+use super::{Relaxation, RelaxationError, slice::update_pair_slices};
 
 /// Zero-sized full fixed-point update.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -17,43 +17,16 @@ where
         second_current: &mut [T],
         second_candidate: &[T],
     ) -> Result<(), RelaxationError> {
-        Self::validate_slice(first_current, first_candidate, 0)?;
-        Self::validate_slice(second_current, second_candidate, first_current.len())?;
-        Self::apply_slice(first_current, first_candidate);
-        Self::apply_slice(second_current, second_candidate);
-        Ok(())
-    }
-}
-
-impl FullRelaxation {
-    fn validate_slice<T>(
-        current: &mut [T],
-        candidate: &[T],
-        index_offset: usize,
-    ) -> Result<(), RelaxationError>
-    where
-        T: NumericElement,
-    {
-        if current.len() != candidate.len() {
-            return Err(RelaxationError::Dimension {
-                current: current.len(),
-                candidate: candidate.len(),
-            });
-        }
-        for (index, source) in candidate.iter().copied().enumerate() {
-            if !source.is_finite() {
-                return Err(RelaxationError::NonFinite {
-                    index: index_offset + index,
-                });
-            }
-        }
-        Ok(())
-    }
-
-    fn apply_slice<T>(current: &mut [T], candidate: &[T])
-    where
-        T: NumericElement,
-    {
-        current.copy_from_slice(candidate);
+        // Full relaxation is a pure copy: the pointwise step ignores the current
+        // value and returns the candidate bit-for-bit. It deliberately is not
+        // `scalar_fmadd(1, candidate - current, current)`, which would round
+        // differently; `tests/codegen_equivalence.rs` pins this copy exactly.
+        update_pair_slices(
+            first_current,
+            first_candidate,
+            second_current,
+            second_candidate,
+            |_, candidate| candidate,
+        )
     }
 }

@@ -2,11 +2,10 @@
 
 mod support;
 
-use athena_core::{ConvergencePolicy, NoObserver};
-use harmonia::{FullRelaxation, IdentityTransfer, PairComponents, PairWorkspace, PartitionedPair};
+use athena_core::ConvergencePolicy;
 use proptest::prelude::*;
 
-use support::{LinearPartition, euclidean_error, exact_interface, instant, window};
+use support::{LinearPartition, Scaffold, euclidean_error, exact_interface, solve_linear_pair};
 
 proptest! {
     #[test]
@@ -20,34 +19,12 @@ proptest! {
     ) {
         let first = LinearPartition { source: first_source, gain: first_gain };
         let second = LinearPartition { source: second_source, gain: second_gain };
-        let model = PairComponents::new(
-            first,
-            second,
-            IdentityTransfer,
-            IdentityTransfer,
-            FullRelaxation,
-        );
-        let workspace = PairWorkspace::for_model(&model)
-            .expect("generated model has compatible dimensions");
-        let mut pair = PartitionedPair::<_, f64, 2, 3>::new(model, workspace)
-            .expect("positive const subcycles");
-        let mut first_state = [first_initial];
-        let mut second_state = [second_initial];
-        let mut first_input = [0.0];
-        let mut second_input = [0.0];
+        let mut scaffold = Scaffold::new(first_initial, second_initial);
         let policy = ConvergencePolicy::new(1.0e-11, 1.0e-11, 64)
             .expect("valid policy");
 
-        let report = pair.solve_window(
-            instant(),
-            window(0.5),
-            &mut first_state,
-            &mut second_state,
-            &mut first_input,
-            &mut second_input,
-            &policy,
-            &mut NoObserver,
-        ).expect("generated map is contractive");
+        let report = solve_linear_pair::<f64, 2, 3>(first, second, 0.5, &policy, &mut scaffold)
+            .expect("generated map is contractive");
 
         let exact = exact_interface(first_initial, second_initial, 0.5, first, second);
         let contraction = (0.5 * first_gain).abs().max((0.5 * second_gain).abs());
@@ -55,6 +32,8 @@ proptest! {
             * (1.0 + exact[0].abs() + exact[1].abs());
         let bound = report.residual_norm / (1.0 - contraction) + rounding;
 
-        prop_assert!(euclidean_error([first_input[0], second_input[0]], exact) <= bound);
+        prop_assert!(
+            euclidean_error([scaffold.first_input[0], scaffold.second_input[0]], exact) <= bound
+        );
     }
 }
