@@ -187,10 +187,11 @@ consumer.
 
 A new interface transfer implements `Transfer<T>`: report the destination
 dimension for a given source dimension, and fill or borrow the caller's scratch.
-A new relaxation implements `Relaxation<T>`: update both current interfaces
-toward their candidates in one `update_pair` call. Stateful policies can retain
-history between iterations without changing the coupling loop, and all policies
-compose into a `PairComponents` bundle at the call site.
+A new relaxation implements `Relaxation<T>`: clear per-window numerical history
+in `begin_window`, then update both current interfaces toward their candidates
+in one `update_pair` call. Stateful policies retain history between iterations
+of that window without changing the coupling loop, and all policies compose
+into a `PairComponents` bundle at the call site.
 
 A new *coupling family* — Gauss-Seidel ordering or three or more partitions — is
 a change to the loop, and is a decision recorded in an ADR before it is a change

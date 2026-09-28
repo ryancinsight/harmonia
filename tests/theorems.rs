@@ -2,12 +2,14 @@
 
 mod support;
 
-use core::fmt::Debug;
+use core::{convert::Infallible, fmt::Debug};
+use std::{cell::RefCell, rc::Rc};
 
 use athena_core::ConvergencePolicy;
 use harmonia::{
-    CouplingError, CouplingReport, FixedRelaxation, FullRelaxation, IdentityTransfer,
-    PairComponents, PairModel, PairWorkspace, Partition, PartitionedPair,
+    AitkenRelaxation, CouplingError, CouplingReport, FixedRelaxation, FullRelaxation,
+    IdentityTransfer, PairComponents, PairModel, PairWorkspace, Partition, PartitionedPair,
+    Substep,
 };
 
 use support::{
@@ -35,6 +37,50 @@ type CountingPair = PartitionedPair<
     1,
     1,
 >;
+
+#[derive(Clone, Debug)]
+struct RecordingAffinePartition {
+    source: f64,
+    gain: f64,
+    inputs: Rc<RefCell<Vec<f64>>>,
+}
+
+impl Partition<f64> for RecordingAffinePartition {
+    type Error = Infallible;
+    type Checkpoint = ();
+
+    fn checkpoint(&self) -> Self::Checkpoint {}
+
+    fn restore(&mut self, _checkpoint: &Self::Checkpoint) {}
+
+    fn state_dimension(&self) -> usize {
+        1
+    }
+
+    fn input_dimension(&self) -> usize {
+        1
+    }
+
+    fn output_dimension(&self) -> usize {
+        1
+    }
+
+    fn advance(
+        &mut self,
+        _substep: Substep<f64>,
+        state: &mut [f64],
+        input: &[f64],
+    ) -> Result<(), Self::Error> {
+        self.inputs.borrow_mut().push(input[0]);
+        state[0] = self.gain.mul_add(input[0], self.source);
+        Ok(())
+    }
+
+    fn export(&self, state: &[f64], output: &mut [f64]) -> Result<(), Self::Error> {
+        output.copy_from_slice(state);
+        Ok(())
+    }
+}
 
 type WindowValues = [[f64; 1]; 4];
 const INITIAL_WINDOW: WindowValues = [[0.25], [-0.5], [0.0], [0.0]];
@@ -220,6 +266,70 @@ fn nonconvergence_is_transactional() {
         (first_state, second_state, first_input, second_input),
         before
     );
+}
+
+#[test]
+fn failed_aitken_window_cannot_seed_the_next_window() {
+    let first_inputs = Rc::new(RefCell::new(Vec::new()));
+    let second_inputs = Rc::new(RefCell::new(Vec::new()));
+    let model = PairComponents::new(
+        RecordingAffinePartition {
+            source: 1.0,
+            gain: 0.5,
+            inputs: Rc::clone(&first_inputs),
+        },
+        RecordingAffinePartition {
+            source: 2.0,
+            gain: 0.25,
+            inputs: Rc::clone(&second_inputs),
+        },
+        IdentityTransfer,
+        IdentityTransfer,
+        AitkenRelaxation::new(0.05, 1.5, 1.0e-12).expect("invariant: valid Aitken configuration"),
+    );
+    let workspace = PairWorkspace::for_model(&model).expect("invariant: compatible dimensions");
+    let mut pair =
+        PartitionedPair::<_, f64, 1, 1>::new(model, workspace).expect("invariant: valid subcycles");
+    let policy = ConvergencePolicy::new(0.0, 0.0, 2).expect("invariant: two iterations are valid");
+    let mut first_state = [0.0];
+    let mut second_state = [0.0];
+    let mut first_input = [0.0];
+    let mut second_input = [0.0];
+
+    let first_result = pair.solve_window(
+        instant(),
+        window(1.0),
+        &mut first_state,
+        &mut second_state,
+        &mut first_input,
+        &mut second_input,
+        &policy,
+        &mut LastObserver::default(),
+    );
+    assert!(matches!(
+        first_result,
+        Err(CouplingError::NotConverged { iterations: 2, .. })
+    ));
+
+    first_input[0] = 10.0;
+    second_input[0] = 10.0;
+    let second_result = pair.solve_window(
+        instant(),
+        window(1.0),
+        &mut first_state,
+        &mut second_state,
+        &mut first_input,
+        &mut second_input,
+        &policy,
+        &mut LastObserver::default(),
+    );
+    assert!(matches!(
+        second_result,
+        Err(CouplingError::NotConverged { iterations: 2, .. })
+    ));
+
+    assert_eq!(first_inputs.borrow().as_slice(), &[0.0, 2.0, 10.0, 4.5]);
+    assert_eq!(second_inputs.borrow().as_slice(), &[0.0, 1.0, 10.0, 6.0]);
 }
 
 #[test]

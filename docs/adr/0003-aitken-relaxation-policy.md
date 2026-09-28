@@ -33,6 +33,13 @@ validated positive `[minimum, maximum]` interval. The update is
 `x[i] <- x[i] + omega[i] * r[i]`, evaluated through Eunomia's scalar fused
 multiply-add.
 
+History is scoped to one coupling window. `PartitionedPair::solve_window`
+invokes `Relaxation::begin_window` after validating the caller slices, and
+`AitkenRelaxation` clears the previous residual and factor lengths while
+retaining their vector capacity. The first relaxed update of every window
+therefore uses the clamped unit factor. Iterations within that window retain
+the componentwise residual and factor history described above.
+
 Configuration validation rejects non-finite bounds or tolerance, a
 non-positive minimum or tolerance, and an upper bound below the lower bound.
 An update validates both dimensions, all inputs, all residuals, and all
@@ -63,6 +70,8 @@ policy's history allocation is explicit in its ownership and documentation.
 - Small-denominator history-reuse regression.
 - Transactional dimension and non-finite failure tests, including retained
   history after a rejected update.
+- A failed-window regression changes the caller inputs, starts a new window,
+  and observes the clamped unit-factor update rather than a cross-window secant.
 - Generic `f32` and `f64` instantiations with native-precision arithmetic.
 - Warning-denied locked check, Nextest, doctest, Rustdoc, and book build at the
   exact provider head.

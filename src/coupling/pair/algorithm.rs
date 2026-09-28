@@ -67,7 +67,13 @@ where
     ///
     /// The four caller slices are committed together only after the raw
     /// fixed-point defect meets `policy`. Every error leaves all four slices
-    /// unchanged.
+    /// unchanged. The pair model may retain state from the last attempted
+    /// evaluation; partition checkpoints guarantee repeatable iterations, not
+    /// rollback after the call returns.
+    ///
+    /// Every valid call begins a new relaxation window after slice validation.
+    /// Stateful relaxation policies retain history only between iterations of
+    /// that window.
     ///
     /// # Errors
     ///
@@ -99,6 +105,7 @@ where
         O: IterationObserver<T>,
     {
         self.snapshot(first_state, second_state, first_input, second_input)?;
+        self.model.relaxation_mut().begin_window();
         let first_checkpoint = self.model.first().checkpoint();
         let second_checkpoint = self.model.second().checkpoint();
 
