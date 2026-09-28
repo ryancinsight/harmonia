@@ -34,8 +34,9 @@ discovery.
 
 # Usage
 
-    scripts/lockfile.py --check        # verify the committed lock, offline
-    scripts/lockfile.py --regenerate   # rewrite it correctly (needs network)
+    scripts/lockfile.py --check          # verify the committed lock, offline
+    scripts/lockfile.py --regenerate     # rewrite it correctly (needs network)
+    scripts/lockfile.py --check-staged   # pre-commit: verify the staged lock, index-only
 """
 
 from __future__ import annotations
@@ -45,6 +46,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import tomllib
 from pathlib import Path
 
 REPOSITORY = Path(__file__).resolve().parent.parent
@@ -54,6 +56,7 @@ MANIFEST = REPOSITORY / "Cargo.toml"
 # Any first-party dependency resolves through one of these. A lock with none of
 # them has been flattened by the overlay.
 FIRST_PARTY_SOURCE = re.compile(r'^source = "git\+https://github\.com/ryancinsight/', re.M)
+FIRST_PARTY_GIT = "git+https://github.com/ryancinsight/"
 
 
 def run_outside_the_overlay(arguments: list[str]) -> subprocess.CompletedProcess[str]:
@@ -123,6 +126,62 @@ def check() -> int:
     return 0
 
 
+def indexed_first_party_dependencies() -> int:
+    """Count git providers in indexed Cargo dependency tables, without Cargo."""
+    indexed = subprocess.run(
+        ["git", "ls-files", "--cached", "-z", "--", "*Cargo.toml"],
+        cwd=REPOSITORY, capture_output=True, text=True, check=True, timeout=30,
+    )
+    count = 0
+    for path in indexed.stdout.split("\0"):
+        if not path or Path(path).name != "Cargo.toml":
+            continue
+        blob = subprocess.run(
+            ["git", "show", f":{path}"], cwd=REPOSITORY,
+            capture_output=True, text=True, check=True, timeout=30,
+        )
+        pending = [tomllib.loads(blob.stdout)]
+        while pending:
+            table = pending.pop()
+            for name, value in table.items():
+                if not isinstance(value, dict):
+                    continue
+                if name in {"dependencies", "dev-dependencies", "build-dependencies"}:
+                    count += sum(
+                        isinstance(dependency, dict)
+                        and str(dependency.get("git", "")).startswith(FIRST_PARTY_GIT.removeprefix("git+"))
+                        for dependency in value.values()
+                    )
+                else:
+                    pending.append(value)
+    return count
+
+
+def check_staged() -> int:
+    """Reject a staged lock missing declared first-party git sources.
+
+    Index-only and runs no cargo, so an ordinary commit that does not touch
+    Cargo.lock pays nothing for this (the pre-commit hook contract).
+    """
+    staged = subprocess.run(
+        ["git", "diff", "--cached", "--name-only", "--", "Cargo.lock"],
+        cwd=REPOSITORY, capture_output=True, text=True, check=True, timeout=30,
+    )
+    if not staged.stdout.strip():
+        return 0
+    blob = subprocess.run(
+        ["git", "show", ":Cargo.lock"], cwd=REPOSITORY,
+        capture_output=True, text=True, check=True, timeout=30,
+    )
+    if FIRST_PARTY_SOURCE.search(blob.stdout):
+        return 0
+    declared = indexed_first_party_dependencies()
+    if declared == 0:
+        return 0
+    print("error: staged Cargo.lock omits declared first-party git sources", file=sys.stderr)
+    return 1
+
+
 def regenerate() -> int:
     completed = run_outside_the_overlay(["generate-lockfile"])
     if completed.returncode != 0:
@@ -137,6 +196,7 @@ def main() -> int:
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--check", action="store_true", help="verify the committed lock")
     mode.add_argument("--regenerate", action="store_true", help="rewrite the lock correctly")
+    mode.add_argument("--check-staged", action="store_true", help="check the staged lock for pre-commit")
     parser.add_argument("--manifest-path", type=Path, default=None,
                         help="path to Cargo.toml (overrides auto-detection from __file__)")
     arguments = parser.parse_args()
@@ -145,6 +205,8 @@ def main() -> int:
         MANIFEST = arguments.manifest_path.resolve()
         REPOSITORY = MANIFEST.parent
         LOCKFILE = REPOSITORY / "Cargo.lock"
+    if arguments.check_staged:
+        return check_staged()
     return regenerate() if arguments.regenerate else check()
 
 
