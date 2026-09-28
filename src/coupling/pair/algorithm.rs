@@ -1,5 +1,3 @@
-use core::marker::PhantomData;
-
 use athena_core::{ConvergencePolicy, IterationObserver, IterationState};
 use eunomia::{NumericElement, RealField};
 use horae::{
@@ -19,7 +17,6 @@ use super::{CouplingError, CouplingReport, PairConstructionError, PairWorkspace}
 pub struct PartitionedPair<M, T, const FIRST_SUBSTEPS: usize, const SECOND_SUBSTEPS: usize> {
     model: M,
     workspace: PairWorkspace<T>,
-    scalar: PhantomData<T>,
 }
 
 impl<M, T, const FIRST_SUBSTEPS: usize, const SECOND_SUBSTEPS: usize>
@@ -37,11 +34,7 @@ where
     pub fn new(model: M, workspace: PairWorkspace<T>) -> Result<Self, SubcycleError> {
         SubcyclePlan::<FIRST_SUBSTEPS>::new()?;
         SubcyclePlan::<SECOND_SUBSTEPS>::new()?;
-        Ok(Self {
-            model,
-            workspace,
-            scalar: PhantomData,
-        })
+        Ok(Self { model, workspace })
     }
 
     /// Allocate a validated workspace and construct the pair.
@@ -216,7 +209,7 @@ where
             &mut self.workspace.first_work,
             &self.workspace.first_guess,
         )
-        .map_err(map_first_step)?;
+        .map_err(|error| map_step(error, CouplingError::First))?;
         advance_window::<T, _, SECOND_SUBSTEPS>(
             self.model.second_mut(),
             start,
@@ -224,7 +217,7 @@ where
             &mut self.workspace.second_work,
             &self.workspace.second_guess,
         )
-        .map_err(map_second_step)?;
+        .map_err(|error| map_step(error, CouplingError::Second))?;
         self.export_and_transfer()?;
         pair_metrics(
             &self.workspace.first_guess,
@@ -402,22 +395,13 @@ fn validate_dimension<T, FirstError, SecondError>(
     }
 }
 
-fn map_first_step<T, FirstError, SecondError>(
-    error: WindowStepError<FirstError>,
+fn map_step<T, E, FirstError, SecondError>(
+    error: WindowStepError<E>,
+    wrap: fn(E) -> CouplingError<T, FirstError, SecondError>,
 ) -> CouplingError<T, FirstError, SecondError> {
     match error {
         WindowStepError::Time(error) => CouplingError::Time(error),
         WindowStepError::Subcycle(error) => CouplingError::Subcycle(error),
-        WindowStepError::Partition(error) => CouplingError::First(error),
-    }
-}
-
-fn map_second_step<T, FirstError, SecondError>(
-    error: WindowStepError<SecondError>,
-) -> CouplingError<T, FirstError, SecondError> {
-    match error {
-        WindowStepError::Time(error) => CouplingError::Time(error),
-        WindowStepError::Subcycle(error) => CouplingError::Subcycle(error),
-        WindowStepError::Partition(error) => CouplingError::Second(error),
+        WindowStepError::Partition(error) => wrap(error),
     }
 }

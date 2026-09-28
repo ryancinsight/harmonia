@@ -2,7 +2,7 @@ use alloc::vec::Vec;
 
 use eunomia::{NumericElement, RealField};
 
-use super::{InvalidAitkenRelaxation, Relaxation, RelaxationError};
+use super::{InvalidAitkenRelaxation, Relaxation, RelaxationError, slice::validate_dimensions};
 
 /// Stateful componentwise Aitken \(\Delta^2\) relaxation for a coupled pair.
 ///
@@ -159,12 +159,11 @@ where
     }
 
     fn commit_history(&mut self) {
-        self.previous_residual.clear();
-        self.previous_residual
-            .extend_from_slice(&self.residual_workspace);
-        self.previous_relaxation.clear();
-        self.previous_relaxation
-            .extend_from_slice(&self.relaxation_workspace);
+        core::mem::swap(&mut self.previous_residual, &mut self.residual_workspace);
+        core::mem::swap(
+            &mut self.previous_relaxation,
+            &mut self.relaxation_workspace,
+        );
     }
 
     fn apply_slice(current: &mut [T], residual: &[T], relaxation: &[T]) {
@@ -189,18 +188,8 @@ where
         second_current: &mut [T],
         second_candidate: &[T],
     ) -> Result<(), RelaxationError> {
-        if first_current.len() != first_candidate.len() {
-            return Err(RelaxationError::Dimension {
-                current: first_current.len(),
-                candidate: first_candidate.len(),
-            });
-        }
-        if second_current.len() != second_candidate.len() {
-            return Err(RelaxationError::Dimension {
-                current: second_current.len(),
-                candidate: second_candidate.len(),
-            });
-        }
+        validate_dimensions(first_current, first_candidate)?;
+        validate_dimensions(second_current, second_candidate)?;
 
         let first_len = first_current.len();
         let total_len = first_len + second_current.len();
@@ -222,13 +211,13 @@ where
         self.commit_history();
         Self::apply_slice(
             first_current,
-            &self.residual_workspace[..first_len],
-            &self.relaxation_workspace[..first_len],
+            &self.previous_residual[..first_len],
+            &self.previous_relaxation[..first_len],
         );
         Self::apply_slice(
             second_current,
-            &self.residual_workspace[first_len..],
-            &self.relaxation_workspace[first_len..],
+            &self.previous_residual[first_len..],
+            &self.previous_relaxation[first_len..],
         );
         Ok(())
     }

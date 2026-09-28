@@ -1,6 +1,6 @@
 use eunomia::{NumericElement, RealField};
 
-use super::{InvalidRelaxation, Relaxation, RelaxationError};
+use super::{InvalidRelaxation, Relaxation, RelaxationError, slice::update_pair_slices};
 
 /// Validated fixed under-relaxation policy.
 #[repr(transparent)]
@@ -48,49 +48,13 @@ where
         second_current: &mut [T],
         second_candidate: &[T],
     ) -> Result<(), RelaxationError> {
-        Self::validate_slice(self.weight, first_current, first_candidate, 0)?;
-        Self::validate_slice(
-            self.weight,
+        let weight = self.weight;
+        update_pair_slices(
+            first_current,
+            first_candidate,
             second_current,
             second_candidate,
-            first_current.len(),
-        )?;
-        Self::apply_slice(self.weight, first_current, first_candidate);
-        Self::apply_slice(self.weight, second_current, second_candidate);
-        Ok(())
-    }
-}
-
-impl<T> FixedRelaxation<T>
-where
-    T: RealField,
-{
-    fn validate_slice(
-        weight: T,
-        current: &mut [T],
-        candidate: &[T],
-        index_offset: usize,
-    ) -> Result<(), RelaxationError> {
-        if current.len() != candidate.len() {
-            return Err(RelaxationError::Dimension {
-                current: current.len(),
-                candidate: candidate.len(),
-            });
-        }
-        for (index, (value, target)) in current.iter().zip(candidate.iter().copied()).enumerate() {
-            let updated = weight.scalar_fmadd(target - *value, *value);
-            if !updated.is_finite() {
-                return Err(RelaxationError::NonFinite {
-                    index: index_offset + index,
-                });
-            }
-        }
-        Ok(())
-    }
-
-    fn apply_slice(weight: T, current: &mut [T], candidate: &[T]) {
-        for (value, target) in current.iter_mut().zip(candidate.iter().copied()) {
-            *value = weight.scalar_fmadd(target - *value, *value);
-        }
+            |current, candidate| weight.scalar_fmadd(candidate - current, current),
+        )
     }
 }

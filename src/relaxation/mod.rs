@@ -5,6 +5,7 @@ mod contract;
 mod error;
 mod fixed;
 mod full;
+mod slice;
 
 pub use aitken::AitkenRelaxation;
 pub use contract::Relaxation;

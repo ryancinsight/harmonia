@@ -2,13 +2,15 @@
 
 mod support;
 
-use athena_core::{ConvergencePolicy, NoObserver};
-use harmonia::{FullRelaxation, IdentityTransfer, PairComponents, PairWorkspace, PartitionedPair};
+use athena_core::ConvergencePolicy;
 
-use support::{LinearPartition, instant, window};
+use support::{LinearPartition, Scaffold, solve_linear_pair};
 
 fn solve<const FIRST: usize, const SECOND: usize>() -> ([f64; 2], [f64; 2]) {
-    let model = PairComponents::new(
+    let mut scaffold = Scaffold::new(0.25, 0.75);
+    let policy = ConvergencePolicy::new(0.0, 0.0, 2).expect("invariant: valid iteration policy");
+
+    solve_linear_pair::<f64, FIRST, SECOND>(
         LinearPartition {
             source: 1.0_f64,
             gain: 0.0,
@@ -17,34 +19,15 @@ fn solve<const FIRST: usize, const SECOND: usize>() -> ([f64; 2], [f64; 2]) {
             source: -2.0_f64,
             gain: 0.0,
         },
-        IdentityTransfer,
-        IdentityTransfer,
-        FullRelaxation,
-    );
-    let workspace = PairWorkspace::for_model(&model).expect("invariant: compatible dimensions");
-    let mut pair =
-        PartitionedPair::<_, f64, FIRST, SECOND>::new(model, workspace).expect("valid subcycles");
-    let mut first_state = [0.25];
-    let mut second_state = [0.75];
-    let mut first_input = [0.0];
-    let mut second_input = [0.0];
-    let policy = ConvergencePolicy::new(0.0, 0.0, 2).expect("invariant: valid iteration policy");
-
-    pair.solve_window(
-        instant(),
-        window(0.5),
-        &mut first_state,
-        &mut second_state,
-        &mut first_input,
-        &mut second_input,
+        0.5,
         &policy,
-        &mut NoObserver,
+        &mut scaffold,
     )
     .expect("constant derivative pair converges");
 
     (
-        [first_state[0], second_state[0]],
-        [first_input[0], second_input[0]],
+        [scaffold.first_state[0], scaffold.second_state[0]],
+        [scaffold.first_input[0], scaffold.second_input[0]],
     )
 }
 
