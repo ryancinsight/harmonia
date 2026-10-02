@@ -1,14 +1,23 @@
 //! Allocation evidence for reusable coupling workspaces.
+//!
+//! The measurement window counts allocations made by the calling thread only.
+//! A process-wide counter is invalid here: libtest runs the test body on a
+//! spawned thread while its main thread keeps inserting the running test into
+//! its bookkeeping collections, and parallel tests allocate concurrently, so a
+//! process-wide window occasionally absorbs allocations unrelated to
+//! the coupling path.
 
 mod support;
 
+use std::alloc::System;
+
 use athena_core::ConvergencePolicy;
-use stats_alloc::{INSTRUMENTED_SYSTEM, Region, StatsAlloc};
+use mnemosyne::counting::{AllocationDelta, CountingAllocator, measure};
 
 use support::{LastObserver, LinearPartition, Scaffold, linear_pair, solve};
 
 #[global_allocator]
-static ALLOCATOR: &StatsAlloc<std::alloc::System> = &INSTRUMENTED_SYSTEM;
+static ALLOCATOR: CountingAllocator<System> = CountingAllocator::new(System);
 
 #[test]
 fn repeated_window_solves_allocate_nothing_after_workspace_construction() {
@@ -25,20 +34,18 @@ fn repeated_window_solves_allocate_nothing_after_workspace_construction() {
     let policy = ConvergencePolicy::new(1.0e-10, 1.0e-10, 32).expect("invariant: valid policy");
     let mut scaffold = Scaffold::new(0.0, 0.0);
 
-    let region = Region::new(ALLOCATOR);
-    for _ in 0..16 {
-        solve(
-            &mut pair,
-            0.25,
-            &policy,
-            &mut scaffold,
-            &mut LastObserver::default(),
-        )
-        .expect("contractive pair converges");
-    }
-    let change = region.change();
+    let ((), delta) = measure(|| {
+        for _ in 0..16 {
+            solve(
+                &mut pair,
+                0.25,
+                &policy,
+                &mut scaffold,
+                &mut LastObserver::default(),
+            )
+            .expect("contractive pair converges");
+        }
+    });
 
-    assert_eq!(change.allocations, 0);
-    assert_eq!(change.reallocations, 0);
-    assert_eq!(change.deallocations, 0);
+    assert_eq!(delta, AllocationDelta::default());
 }

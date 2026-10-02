@@ -1,14 +1,23 @@
 //! Executable evidence for the typed physical-field boundary.
+//!
+//! The measurement window counts allocations made by the calling thread only.
+//! A process-wide counter is invalid here: libtest runs the test body on a
+//! spawned thread while its main thread keeps inserting the running test into
+//! its bookkeeping collections, and parallel tests allocate concurrently, so a
+//! process-wide window occasionally absorbs allocations unrelated to
+//! envelope construction.
+
+use std::alloc::System;
 
 use aequitas::Quantity;
 use aequitas::systems::si::{dimensions, quantities::Length};
 use harmonia::{FieldEnvelope, FieldError, GridGeometry};
 use horae::time::Instant;
+use mnemosyne::counting::{AllocationDelta, CountingAllocator, measure};
 use proptest::prelude::*;
-use stats_alloc::{INSTRUMENTED_SYSTEM, Region, StatsAlloc};
 
 #[global_allocator]
-static ALLOCATOR: &StatsAlloc<std::alloc::System> = &INSTRUMENTED_SYSTEM;
+static ALLOCATOR: CountingAllocator<System> = CountingAllocator::new(System);
 
 fn geometry<T>() -> GridGeometry<T, 2>
 where
@@ -31,15 +40,15 @@ fn valid_envelope_borrows_quantity_values() {
         Quantity::from_base(3.0),
         Quantity::from_base(4.0),
     ];
-    let region = Region::new(ALLOCATOR);
-    let field = FieldEnvelope::try_new(
-        &values,
-        geometry(),
-        Instant::new(aequitas::systems::si::quantities::Time::from_base(0.0))
-            .expect("invariant: zero is finite"),
-    )
-    .expect("invariant: value count matches geometry");
-    let change = region.change();
+    let (field, delta) = measure(|| {
+        FieldEnvelope::try_new(
+            &values,
+            geometry(),
+            Instant::new(aequitas::systems::si::quantities::Time::from_base(0.0))
+                .expect("invariant: zero is finite"),
+        )
+    });
+    let field = field.expect("invariant: value count matches geometry");
 
     assert_eq!(field.values().as_ptr(), values.as_ptr());
     assert_eq!(field.values()[2].into_base().to_bits(), 3.0_f64.to_bits());
@@ -48,9 +57,7 @@ fn valid_envelope_borrows_quantity_values() {
         field.time().into_time().into_base().to_bits(),
         0.0_f64.to_bits()
     );
-    assert_eq!(change.allocations, 0);
-    assert_eq!(change.reallocations, 0);
-    assert_eq!(change.deallocations, 0);
+    assert_eq!(delta, AllocationDelta::default());
 }
 
 #[test]
