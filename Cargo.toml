@@ -19,8 +19,8 @@ eunomia = { version = "0.8.0", git = "https://github.com/ryancinsight/eunomia", 
 horae = { version = "0.1.0", git = "https://github.com/ryancinsight/horae", package = "horae-time", default-features = false }
 
 [dev-dependencies]
+mnemosyne = { package = "mnemosyne-memory", version = "0.8.0", git = "https://github.com/ryancinsight/Mnemosyne.git", default-features = false }
 proptest = "1.11.0"
-stats_alloc = "0.1.10"
 
 [features]
 default = ["std"]

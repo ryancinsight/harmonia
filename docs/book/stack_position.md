@@ -126,9 +126,9 @@ and scratch vectors on first use, then reuses their capacity.
 
 Repeated solves with static policies therefore allocate nothing, which matters
 because a simulation calls `solve_window` once per coupling window for the
-length of the run. The claim is instrumented rather than asserted: an
-allocation-counting global allocator wraps sixteen consecutive solves and
-asserts zero allocations, zero reallocations, and zero deallocations. Stateful
+length of the run. The claim is instrumented rather than asserted: a
+per-thread allocation counter wraps sixteen consecutive solves and asserts
+zero allocations, zero reallocations, and zero deallocations. Stateful
 Aitken history is an explicit retained allocation rather than part of that
 static-policy claim.
 
