@@ -4,8 +4,8 @@ version = 4
 
 [[package]]
 name = "aequitas"
-version = "0.2.0"
-source = "git+https://github.com/ryancinsight/aequitas#d75f4d1f2165821aa6d6ac380f071718e879df08"
+version = "0.2.1"
+source = "git+https://github.com/ryancinsight/aequitas#e433dbd4c9f7c750d533eb747e5be3ee72d7279e"
 dependencies = [
  "eunomia",
  "typenum",
@@ -23,7 +23,7 @@ dependencies = [
 [[package]]
 name = "athena-core"
 version = "0.1.1"
-source = "git+https://github.com/ryancinsight/athena#1e787730cd7b7ce208adacb430c2bda2d6065a7a"
+source = "git+https://github.com/ryancinsight/athena#d35a2f294ced626b58d7c47bccc0e46df7f2cae8"
 dependencies = [
  "eunomia",
  "mnemosyne-arena",
@@ -193,7 +193,7 @@ dependencies = [
 [[package]]
 name = "horae-time"
 version = "0.1.0"
-source = "git+https://github.com/ryancinsight/horae#5b559423dc228c761f06c54534da941c7744c1c5"
+source = "git+https://github.com/ryancinsight/horae#6a21589fcc12ca4c7371ead58b72f1ea75fb1ce9"
 dependencies = [
  "aequitas",
  "eunomia",
@@ -265,7 +265,7 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 [[package]]
 name = "mnemosyne-arena"
 version = "0.5.0"
-source = "git+https://github.com/ryancinsight/Mnemosyne.git#bdaba5bfd445f9cd7ef7bfe8a5929741b0b4187d"
+source = "git+https://github.com/ryancinsight/Mnemosyne.git#06769e4321d78088c5621946e224e32b4b1a2c3d"
 dependencies = [
  "eunomia",
  "libc",
@@ -278,7 +278,7 @@ dependencies = [
 [[package]]
 name = "mnemosyne-backend"
 version = "0.6.0"
-source = "git+https://github.com/ryancinsight/Mnemosyne.git#bdaba5bfd445f9cd7ef7bfe8a5929741b0b4187d"
+source = "git+https://github.com/ryancinsight/Mnemosyne.git#06769e4321d78088c5621946e224e32b4b1a2c3d"
 dependencies = [
  "mnemosyne-memory-core",
 ]
@@ -286,7 +286,7 @@ dependencies = [
 [[package]]
 name = "mnemosyne-memory-core"
 version = "0.3.0"
-source = "git+https://github.com/ryancinsight/Mnemosyne.git#bdaba5bfd445f9cd7ef7bfe8a5929741b0b4187d"
+source = "git+https://github.com/ryancinsight/Mnemosyne.git#06769e4321d78088c5621946e224e32b4b1a2c3d"
 dependencies = [
  "loom",
 ]
@@ -542,7 +542,7 @@ dependencies = [
 [[package]]
 name = "themis-topology"
 version = "0.11.1"
-source = "git+https://github.com/ryancinsight/themis#b7b937c37d009ac766e9613a81a48f6b94bb5430"
+source = "git+https://github.com/ryancinsight/themis#047e7932c725aa475d74527d0be6b415fb1fee01"
 dependencies = [
  "libc",
  "melinoe",
