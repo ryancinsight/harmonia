@@ -94,7 +94,7 @@ jobs:
   # this call never passes `release-gate`.
   semver:
     name: SemVer gate
-    uses: ryancinsight/atlas/.github/workflows/semver-gate.yml@d6686df7628c26d464f1982d55164f1b627d3f2a
+    uses: ryancinsight/atlas/.github/workflows/semver-gate.yml@50802ef4c975bdb1e668b94a700d8310f0348e9c
     permissions:
       contents: read
     with:
