@@ -6,6 +6,14 @@ All notable changes to Harmonia are documented in this file.
 
 ### Changed
 
+- Follow the current provider cohort. `aequitas` moves to 0.3.1, `eunomia` to
+  0.10.0, `athena-core` to 0.3.2, `horae-time` to 0.2.2, and the dev-only
+  `mnemosyne-memory` to 0.10.1; the lock resolves each at its published
+  revision. One git source resolves to one revision, so every edge that names
+  a provider repository has to agree on a version or the resolver refuses the
+  pair. `athena-core` and `eunomia` are the two that gated the set: Athena
+  0.3.0 still required Eunomia 0.9, which no longer resolves against the
+  current Eunomia source.
 - Make relaxation a mutable pair-level contract so stateful policies can use the
   complete coupled defect and retain history across iterations without a
   consumer-owned loop or adapter.
