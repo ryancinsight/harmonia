@@ -38,7 +38,7 @@ dependencies = [
 [[package]]
 name = "athena-core"
 version = "0.3.2"
-source = "git+https://github.com/ryancinsight/athena#584723632abe4fbbefbdb185c7ca2a37592e0f7d"
+source = "git+https://github.com/ryancinsight/athena#23c4f0242496567478077b1775db9a3e9498f7e2"
 dependencies = [
  "eunomia",
 ]
@@ -134,7 +134,7 @@ dependencies = [
 [[package]]
 name = "eunomia"
 version = "0.10.0"
-source = "git+https://github.com/ryancinsight/eunomia#15fbb94c8f7ed8fa7bce4baf4167e2ffbedeceb3"
+source = "git+https://github.com/ryancinsight/eunomia#f263446f9c9601fc5aaca1e9ff79737f30900265"
 dependencies = [
  "bytemuck",
  "eunomia-derive",
@@ -144,7 +144,7 @@ dependencies = [
 [[package]]
 name = "eunomia-derive"
 version = "0.10.0"
-source = "git+https://github.com/ryancinsight/eunomia#15fbb94c8f7ed8fa7bce4baf4167e2ffbedeceb3"
+source = "git+https://github.com/ryancinsight/eunomia#f263446f9c9601fc5aaca1e9ff79737f30900265"
 dependencies = [
  "proc-macro2",
  "quote",
