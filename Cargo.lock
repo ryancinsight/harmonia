@@ -228,7 +228,7 @@ dependencies = [
 [[package]]
 name = "horae-time"
 version = "0.2.2"
-source = "git+https://github.com/ryancinsight/horae#cc6576ddc1c653828a1f8d8db850672c08013213"
+source = "git+https://github.com/ryancinsight/horae#2ab2b95d4d92699e411215c7fe01c49a89a26cd7"
 dependencies = [
  "aequitas",
  "eunomia",
