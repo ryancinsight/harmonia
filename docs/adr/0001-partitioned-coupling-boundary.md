@@ -113,6 +113,26 @@ substep starts beyond the endpoint and the final advance ends at that endpoint,
 subject to the scalar arithmetic contract. Differential tests compare
 specializations on systems whose exact result is subdivision-invariant.
 
+### Metric range invariant
+
+The coupling metric stores `(scale, sum)` with the exact-arithmetic invariant
+`sum(x_i²) = scale² * sum`. Adding magnitude `a > scale` gives
+`sum <- 1 + sum * (scale/a)²`, `scale <- a`; otherwise it adds
+`(a/scale)²`. Zero components leave the state unchanged. All ratios are at
+most one, and a maximum nonzero component contributes one. Thus a nonzero
+representable maximum survives even when its square would underflow, and
+input-scale squaring cannot overflow. The final norm is `scale * sqrt(sum)`.
+For the supported native `f32`/`f64` fields, the component count of an
+addressable slice is below the scalar overflow range. Rounding remains in the
+chosen field; this does not claim exact real arithmetic for arbitrary vectors.
+
+Both the defect and the candidate use this same private accumulator. Every
+component is checked for finiteness, including a subtraction that overflows;
+a nonfinite final norm remains `NonFiniteMetric`. The caller transaction and
+Athena threshold policy are unchanged. Tests use exact `3-4-5` norm witnesses
+at every representable binary scale where `5u` fits, a multidimensional
+`3-4-12-13` oracle, and nonfinite/really-overflowing transaction cases.
+
 ## Rejected alternatives
 
 - Consumer-owned coupling loops: rejected because they duplicate convergence,

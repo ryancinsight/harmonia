@@ -162,3 +162,21 @@ type-suffixed identifiers, zero re-export shims.
   stays green.
 - Dependencies: none.
 - Risk/change class: `[pm-hygiene]`, `[patch]`. Effort S.
+
+
+## ATLAS-HARMONIA-NORM-009 — Preserve the coupling metric exponent range [patch] — implemented, qualification pending
+
+- Defect: `pair_metrics` squares unscaled values. On main `51772129`, the
+  public linear-pair solve accepts a nonzero `5 * 2^-80` f32 defect as zero,
+  accepts subnormal defects, and rejects the finite `5 * 2^80` norm. The
+  corresponding f64 scales are also covered by the regression.
+- Scope: the private pair metric, its proof, and public solver regressions;
+  no policy, public API, dependency-source, or relaxation changes.
+- Acceptance: exact `3-4-5` witnesses at all binary scales with representable
+  norms in f32/f64; candidate-relative thresholds; multidimensional mixed-sign
+  inputs; rejection of nonfinite/unrepresentable metrics; transactional caller
+  state, allocation, no_std, MSRV and existing solver gates.
+- Repair: shared native-precision scaled accumulation for defect and candidate.
+- Verification: the original source fails the three focused witness tests;
+  final local, independent-review and hosted qualification remain required.
+- Existing ERRPATHS-003 and TRANSFER-004 retain their broader scope.

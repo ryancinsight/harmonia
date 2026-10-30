@@ -2,6 +2,17 @@
 
 All notable changes to Harmonia are documented in this file.
 
+## 0.1.1 — 2026-10-30
+
+### Fixed
+
+- Accumulate coupling defect and candidate norms with native-precision scaling.
+  Nonzero tiny/subnormal defects no longer become false zero-residual success,
+  and large finite norms no longer fail because their component squares
+  overflow. Nonfinite values and genuinely unrepresentable norms still return
+  `NonFiniteMetric` without changing caller slices. Public APIs, policy,
+  dependency requirements, and first-party source revisions are unchanged.
+
 ## Unreleased
 
 ### Changed

@@ -36,7 +36,9 @@ partitions from the same window-start snapshot, including partition-owned
 replay checkpoints. Each fixed-point iteration restores and advances both
 partitions independently, transfers their exported interface values, checks
 the raw fixed-point defect, and applies relaxation only when another iteration
-is required.
+is required. The defect and candidate Euclidean norms use scaled accumulation
+in the selected scalar precision, preserving representable tiny and large
+norms without squaring their unscaled components.
 
 The four caller slices — two states and two interface guesses — change only on
 convergence. Every error, including iteration-budget exhaustion, leaves those
