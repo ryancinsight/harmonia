@@ -1,5 +1,5 @@
 use athena_core::{ConvergencePolicy, IterationObserver, IterationState};
-use eunomia::{NumericElement, RealField};
+use eunomia::RealField;
 use horae::{
     subcycling::{SubcycleError, SubcyclePlan},
     time::{Instant, StepSize, TimeError},
@@ -7,7 +7,9 @@ use horae::{
 
 use crate::{PairModel, Partition, Relaxation, Substep, Transfer};
 
-use super::{CouplingError, CouplingReport, PairConstructionError, PairWorkspace};
+use super::{
+    CouplingError, CouplingReport, PairConstructionError, PairWorkspace, metrics::pair_metrics,
+};
 
 /// Transactional synchronous Jacobi coupling of two partitions.
 ///
@@ -358,32 +360,6 @@ where
         cursor = cursor.advance(size).map_err(WindowStepError::Time)?;
     }
     Ok(())
-}
-
-fn pair_metrics<T>(
-    first_current: &[T],
-    first_candidate: &[T],
-    second_current: &[T],
-    second_candidate: &[T],
-) -> Option<(T, T)>
-where
-    T: RealField,
-{
-    let mut residual_squared = <T as NumericElement>::ZERO;
-    let mut candidate_squared = <T as NumericElement>::ZERO;
-    for (current, candidate) in first_current
-        .iter()
-        .chain(second_current)
-        .copied()
-        .zip(first_candidate.iter().chain(second_candidate).copied())
-    {
-        let difference = candidate - current;
-        residual_squared = difference.scalar_fmadd(difference, residual_squared);
-        candidate_squared = candidate.scalar_fmadd(candidate, candidate_squared);
-    }
-    let residual = residual_squared.sqrt();
-    let candidate = candidate_squared.sqrt();
-    (residual.is_finite() && candidate.is_finite()).then_some((residual, candidate))
 }
 
 fn validate_dimension<T, FirstError, SecondError>(

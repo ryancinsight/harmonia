@@ -2,6 +2,7 @@
 
 mod algorithm;
 mod error;
+mod metrics;
 mod model;
 mod report;
 mod workspace;

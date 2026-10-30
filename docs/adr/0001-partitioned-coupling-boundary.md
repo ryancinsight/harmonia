@@ -113,6 +113,38 @@ substep starts beyond the endpoint and the final advance ends at that endpoint,
 subject to the scalar arithmetic contract. Differential tests compare
 specializations on systems whose exact result is subdivision-invariant.
 
+### Metric range invariant
+
+The metric first finds the largest finite magnitude `scale`, then reduces
+`(x_i / scale)²`. A maximum contributes exactly one, so a nonzero maximum
+survives when its unscaled square would underflow. Ratios are at most one;
+for supported native `f32`/`f64`, the addressable component count cannot
+overflow the scaled sum. Zero vectors return zero after all inputs are
+validated. Neither pass allocates.
+
+Scaling alone is insufficient at the upper boundary: rounded division,
+summation, square root and multiplication can turn a finite norm into infinity.
+The reduction therefore retains the division residual
+`fma(-ratio, scale, |x|) / scale` and the product residual
+`fma(ratio, ratio, -square)`. TwoSum carries low-order addition residuals in
+a second value of the same scalar type. The square-root correction is
+`(fma(-root, root, sum.high) + sum.low) / (2 * root)`. Product FMA then carries
+that correction into the final result. For scales above one, multiplying the
+scale by one half creates room to apply the correction before restoring the
+factor of two. At scales at most one this halving is omitted, preserving
+minimum subnormal inputs. This is compensated native arithmetic, with no
+wider scalar, clamping, adjusted convergence tolerance or extra allocation.
+It does not claim exact real arithmetic or universal correct rounding.
+
+Both defect and candidate use the same private implementation. Nonfinite
+components, overflowing subtractions and unrepresentable final norms remain
+`NonFiniteMetric`. Athena policy and the caller transaction are unchanged.
+Tests cover all binary scales with representable `3-4-5` norms, a
+multidimensional `3-4-12-13` oracle, nonfinite transactions, and exact-integer
+certificates on both sides of the f32/f64 maximum range boundary. In the f64
+witness, `MAX² - (x²+y²) = 53289514649133936 * 2^1938 > 0`; the adjacent upper
+input exceeds the IEEE overflow midpoint and must still be rejected.
+
 ## Rejected alternatives
 
 - Consumer-owned coupling loops: rejected because they duplicate convergence,
