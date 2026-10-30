@@ -7,61 +7,84 @@ pub(super) fn pair_metrics<T: RealField>(
     second_current: &[T],
     second_candidate: &[T],
 ) -> Option<(T, T)> {
-    let mut residual = ScaledNorm::new();
-    let mut candidate_norm = ScaledNorm::new();
-    for (current, candidate) in first_current
+    let candidates = first_candidate.iter().chain(second_candidate).copied();
+    let differences = first_current
         .iter()
         .chain(second_current)
         .copied()
-        .zip(first_candidate.iter().chain(second_candidate).copied())
-    {
-        residual.push(candidate - current)?;
-        candidate_norm.push(candidate)?;
-    }
-    Some((residual.finish()?, candidate_norm.finish()?))
+        .zip(candidates.clone())
+        .map(|(current, candidate)| candidate - current);
+    Some((scaled_norm(differences)?, scaled_norm(candidates)?))
 }
 
-/// Maintain `sum(x_i²) = scale² * sum` without squaring an unscaled input.
+/// Normalize by the largest magnitude, retaining rounding residuals in `T`.
 ///
-/// When a new magnitude `a` exceeds `scale`, division by `a` gives the new
-/// invariant `sum' = 1 + sum * (scale/a)²`; otherwise add `(a/scale)²`.
-/// Every ratio is at most one and a nonzero maximum contributes exactly one,
-/// so squaring cannot erase the entire norm or overflow at the input scale.
-/// `sum` is bounded by the number of components (representable for the native
-/// f32/f64 fields and any addressable slice). Rounding remains in `T`.
-/// Nonfinite components or an unrepresentable final norm remain errors.
-struct ScaledNorm<T> {
-    scale: T,
-    sum: T,
-}
-
-impl<T: RealField> ScaledNorm<T> {
-    fn new() -> Self {
-        Self {
-            scale: <T as NumericElement>::ZERO,
-            sum: <T as NumericElement>::ONE,
-        }
-    }
-
-    fn push(&mut self, value: T) -> Option<()> {
+/// A maximum contributes exactly one to the scaled sum, so a nonzero norm
+/// survives even when all unscaled squares would underflow. Ratios are at
+/// most one; the sum is bounded by the addressable component count for the
+/// supported f32/f64 fields. FMA recovers division/product residuals, and a
+/// two-component sum retains low-order contributions through the reduction.
+///
+/// Correct the square root and its product before restoring a factor of two
+/// for large scales. This keeps a rounded intermediate from overflowing when
+/// the corrected norm is still finite. All arithmetic stays in `T`: the two
+/// components store a rounding residual, not values in a wider scalar type.
+fn scaled_norm<T: RealField>(values: impl Iterator<Item = T> + Clone) -> Option<T> {
+    let zero = <T as NumericElement>::ZERO;
+    let one = <T as NumericElement>::ONE;
+    let two = one + one;
+    let mut scale = zero;
+    for value in values.clone() {
         if !value.is_finite() {
             return None;
         }
-        let magnitude = value.abs();
-        if magnitude > self.scale {
-            let ratio = self.scale / magnitude;
-            self.sum = (self.sum * ratio).scalar_fmadd(ratio, <T as NumericElement>::ONE);
-            self.scale = magnitude;
-        } else if magnitude > <T as NumericElement>::ZERO {
-            let ratio = magnitude / self.scale;
-            self.sum = ratio.scalar_fmadd(ratio, self.sum);
-        }
-        Some(())
+        scale = scale.max_scalar(value.abs());
     }
+    if scale == zero {
+        return Some(zero);
+    }
+    let mut sum = CompensatedSum {
+        high: zero,
+        low: zero,
+    };
+    for value in values {
+        let magnitude = value.abs();
+        let ratio = magnitude / scale;
+        let ratio_error = (-ratio).scalar_fmadd(scale, magnitude) / scale;
+        let square = ratio * ratio;
+        let square_error = ratio.scalar_fmadd(ratio, -square)
+            + ((ratio + ratio) * ratio_error + ratio_error * ratio_error);
+        sum.add(square, square_error);
+    }
+    let root = sum.high.sqrt();
+    let root_error = ((-root).scalar_fmadd(root, sum.high) + sum.low) / (two * root);
+    // Below one, scaling by a half could erase a minimum subnormal. Above
+    // one, it is exact and makes room for the rounding correction near MAX.
+    let factor = if scale > one { one / two } else { one };
+    let reduced_scale = scale * factor;
+    let product = reduced_scale * root;
+    if !product.is_finite() {
+        return None;
+    }
+    let product_error = reduced_scale.scalar_fmadd(root, -product) + reduced_scale * root_error;
+    let norm = (product + product_error) / factor;
+    norm.is_finite().then_some(norm)
+}
 
-    fn finish(self) -> Option<T> {
-        let norm = self.scale * self.sum.sqrt();
-        norm.is_finite().then_some(norm)
+struct CompensatedSum<T> {
+    high: T,
+    low: T,
+}
+
+impl<T: RealField> CompensatedSum<T> {
+    /// `TwoSum` recovers the addition residual; renormalize the carried tail.
+    fn add(&mut self, high: T, low: T) {
+        let sum = self.high + high;
+        let virtual_high = sum - self.high;
+        let error = (self.high - (sum - virtual_high)) + (high - virtual_high);
+        let tail = (self.low + low) + error;
+        self.high = sum + tail;
+        self.low = tail - (self.high - sum);
     }
 }
 

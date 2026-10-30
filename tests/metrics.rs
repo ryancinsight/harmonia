@@ -137,3 +137,83 @@ fn nonfinite_metrics_leave_all_caller_bits_unchanged() {
         );
     }
 }
+
+fn check_range_boundary<T: RealField>(first: T, second: T, upper: T, maximum: T) {
+    let zero = <T as NumericElement>::ZERO;
+    let one = <T as NumericElement>::ONE;
+    let policy = ConvergencePolicy::new(zero, one, 1).expect("valid relative policy");
+    for (source, finite) in [(second, true), (upper, false)] {
+        let mut values = Scaffold::new(-zero, zero);
+        let result = solve_linear_pair::<T, 1, 1>(
+            LinearPartition {
+                source: first,
+                gain: T::from_f64(0.5),
+            },
+            LinearPartition {
+                source,
+                gain: T::from_f64(0.25),
+            },
+            one,
+            &policy,
+            &mut values,
+        );
+        if finite {
+            let report = result.expect("the exact metric fits in the native scalar");
+            assert_eq!(report.residual_norm, maximum);
+            assert_eq!(report.threshold, maximum);
+            assert_eq!(values.first_state[0], first);
+            assert_eq!(values.second_state[0], source);
+            assert_eq!(values.first_input[0], source);
+            assert_eq!(values.second_input[0], first);
+        } else {
+            assert_eq!(result, Err(CouplingError::NonFiniteMetric));
+            assert_eq!(values.first_state[0], zero);
+            assert!(values.first_state[0].is_sign_negative());
+            assert_eq!(values.second_state[0], zero);
+            assert!(values.second_state[0].is_sign_positive());
+            assert_eq!(values.first_input[0], zero);
+            assert!(values.first_input[0].is_sign_positive());
+            assert_eq!(values.second_input[0], zero);
+            assert!(values.second_input[0].is_sign_positive());
+        }
+    }
+}
+
+#[test]
+fn near_maximum_metrics_preserve_both_sides_of_the_range_boundary() {
+    // In each pair, x has exponent MAX_EXP-2 and y has exponent MAX_EXP.
+    // At the common quantum, their integer significands are x_sig, 4*y_sig;
+    // MAX is 4*max_sig. The output ULP is four quanta, hence midpoints +/-2.
+    // All squared integers fit in u128 (at most 110 bits): this is an exact
+    // certificate independent of the floating-point implementation under test.
+    for (fraction_bits, x_bits, y_bits, gap) in [
+        (
+            52,
+            0x7fca_e147_ae14_7adc_u64,
+            0x7fef_4954_6ab6_de35_u64,
+            53_289_514_649_133_936_u128,
+        ),
+        (23, 0x7e57_0a1a_u64, 0x7f7a_4aa4_u64, 112_878_700_u128),
+    ] {
+        let mask = (1_u128 << fraction_bits) - 1;
+        let x = (u128::from(x_bits) & mask) | (1 << fraction_bits);
+        let y = ((u128::from(y_bits) & mask) | (1 << fraction_bits)) * 4;
+        let maximum = ((1_u128 << (fraction_bits + 1)) - 1) * 4;
+        let square = x * x + y * y;
+        assert_eq!(maximum * maximum - square, gap);
+        assert!(square > (maximum - 2) * (maximum - 2));
+        assert!(x * x + (y + 4) * (y + 4) > (maximum + 2) * (maximum + 2));
+    }
+    check_range_boundary(
+        f64::from_bits(0x7fca_e147_ae14_7adc),
+        f64::from_bits(0x7fef_4954_6ab6_de35),
+        f64::from_bits(0x7fef_4954_6ab6_de36),
+        f64::MAX,
+    );
+    check_range_boundary(
+        f32::from_bits(0x7e57_0a1a),
+        f32::from_bits(0x7f7a_4aa4),
+        f32::from_bits(0x7f7a_4aa5),
+        f32::MAX,
+    );
+}

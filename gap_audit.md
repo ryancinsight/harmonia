@@ -12,8 +12,10 @@ large representable norm returns `NonFiniteMetric`. The fix applies one
 native-precision scaled norm algorithm to both metric reductions. Acceptance
 uses analytical Pythagorean witnesses, not changed convergence tolerances.
 
-All 47 native tests, release regressions, no_std, Rust 1.95, strict lint,
-supply-chain and documentation checks pass locally. Independent final-revision
-review and hosted qualification remain required; delivery receipts belong to
-the pull request.
+Independent review also reproduces an upper-boundary failure of scaling alone:
+a norm below f64::MAX still rounds to infinity. Native compensation through
+division, squared terms, reduction, square root and product resolves that
+witness; exact-integer f32/f64 certificates distinguish the adjacent genuine
+overflow case. Final local, independent review and hosted delivery receipts
+belong to the pull request.
 This audit does not close broader error-path or transfer coverage items.

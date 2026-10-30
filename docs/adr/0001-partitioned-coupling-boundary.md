@@ -115,23 +115,35 @@ specializations on systems whose exact result is subdivision-invariant.
 
 ### Metric range invariant
 
-The coupling metric stores `(scale, sum)` with the exact-arithmetic invariant
-`sum(x_i²) = scale² * sum`. Adding magnitude `a > scale` gives
-`sum <- 1 + sum * (scale/a)²`, `scale <- a`; otherwise it adds
-`(a/scale)²`. Zero components leave the state unchanged. All ratios are at
-most one, and a maximum nonzero component contributes one. Thus a nonzero
-representable maximum survives even when its square would underflow, and
-input-scale squaring cannot overflow. The final norm is `scale * sqrt(sum)`.
-For the supported native `f32`/`f64` fields, the component count of an
-addressable slice is below the scalar overflow range. Rounding remains in the
-chosen field; this does not claim exact real arithmetic for arbitrary vectors.
+The metric first finds the largest finite magnitude `scale`, then reduces
+`(x_i / scale)²`. A maximum contributes exactly one, so a nonzero maximum
+survives when its unscaled square would underflow. Ratios are at most one;
+for supported native `f32`/`f64`, the addressable component count cannot
+overflow the scaled sum. Zero vectors return zero after all inputs are
+validated. Neither pass allocates.
 
-Both the defect and the candidate use this same private accumulator. Every
-component is checked for finiteness, including a subtraction that overflows;
-a nonfinite final norm remains `NonFiniteMetric`. The caller transaction and
-Athena threshold policy are unchanged. Tests use exact `3-4-5` norm witnesses
-at every representable binary scale where `5u` fits, a multidimensional
-`3-4-12-13` oracle, and nonfinite/really-overflowing transaction cases.
+Scaling alone is insufficient at the upper boundary: rounded division,
+summation, square root and multiplication can turn a finite norm into infinity.
+The reduction therefore retains the division residual
+`fma(-ratio, scale, |x|) / scale` and the product residual
+`fma(ratio, ratio, -square)`. TwoSum carries low-order addition residuals in
+a second value of the same scalar type. The square-root correction is
+`(fma(-root, root, sum.high) + sum.low) / (2 * root)`. Product FMA then carries
+that correction into the final result. For scales above one, multiplying the
+scale by one half creates room to apply the correction before restoring the
+factor of two. At scales at most one this halving is omitted, preserving
+minimum subnormal inputs. This is compensated native arithmetic, with no
+wider scalar, clamping, adjusted convergence tolerance or extra allocation.
+It does not claim exact real arithmetic or universal correct rounding.
+
+Both defect and candidate use the same private implementation. Nonfinite
+components, overflowing subtractions and unrepresentable final norms remain
+`NonFiniteMetric`. Athena policy and the caller transaction are unchanged.
+Tests cover all binary scales with representable `3-4-5` norms, a
+multidimensional `3-4-12-13` oracle, nonfinite transactions, and exact-integer
+certificates on both sides of the f32/f64 maximum range boundary. In the f64
+witness, `MAX² - (x²+y²) = 53289514649133936 * 2^1938 > 0`; the adjacent upper
+input exceeds the IEEE overflow midpoint and must still be rejected.
 
 ## Rejected alternatives
 

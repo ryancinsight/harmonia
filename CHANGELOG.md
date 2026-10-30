@@ -6,7 +6,8 @@ All notable changes to Harmonia are documented in this file.
 
 ### Fixed
 
-- Accumulate coupling defect and candidate norms with native-precision scaling.
+- Accumulate coupling defect and candidate norms with native-precision scaling
+  and compensated rounding residuals through finalization.
   Nonzero tiny/subnormal defects no longer become false zero-residual success,
   and large finite norms no longer fail because their component squares
   overflow. Nonfinite values and genuinely unrepresentable norms still return
