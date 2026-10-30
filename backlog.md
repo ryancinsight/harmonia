@@ -9,7 +9,17 @@ Measured baseline at that revision: 1 package, 1647 src LOC, 25 test functions,
 production `unwrap()`, zero `dyn` sites, zero files over 500 lines, zero
 type-suffixed identifiers, zero re-export shims.
 
-## ATLAS-HARMONIA-ERRPATHS-003 — Seven of eight error variants unverified [patch] — todo
+<a id="atlas-harmonia-errpaths-003"></a>
+## ATLAS-HARMONIA-ERRPATHS-003 — Finish transactional error-path coverage [patch] — todo
+
+- Priority: correctness.
+- Basis: 2026-10-30; current solver and regression inspection.
+- Metric-range repair: the 0.1.1 scaled norm prevents false zero-residual
+  convergence and spurious overflow. Public metric regressions cover every
+  binary scale with a representable `3-4-5` norm in f32/f64. Nonfinite and
+  truly overflowing metrics preserve all four caller buffers bit-for-bit.
+  These cases cover the metric boundary; the remaining variants below still
+  need their own transaction oracles.
 
 - Outcome: the transaction theorem is verified on every reachable error path,
   not one.
@@ -18,8 +28,8 @@ type-suffixed identifiers, zero re-export shims.
   test partition declares `type Error = Infallible`
   (`tests/support/mod.rs:21`, `:61`, `:99`), so `CouplingError::First` and
   `::Second` (`src/coupling/pair/error.rs:90`) are never constructed, and
-  `Dimension`, `Time`, `Subcycle`, `Transfer`, and `NonFiniteMetric` have no
-  test at all — while ADR 0001 claims the theorem for *every* error path.
+  `Dimension`, `Time`, `Subcycle`, and `Transfer` still lack transaction
+  oracles — while ADR 0001 claims the theorem for *every* error path.
 - Scope: `tests/theorems.rs`, `tests/support/mod.rs` (a failing partition
   fixture and a failing transfer fixture), no source change expected.
 - Non-goals: new error variants.
@@ -162,21 +172,3 @@ type-suffixed identifiers, zero re-export shims.
   stays green.
 - Dependencies: none.
 - Risk/change class: `[pm-hygiene]`, `[patch]`. Effort S.
-
-
-## ATLAS-HARMONIA-NORM-009 — Preserve the coupling metric exponent range [patch] — implemented, qualification pending
-
-- Defect: `pair_metrics` squares unscaled values. On main `51772129`, the
-  public linear-pair solve accepts a nonzero `5 * 2^-80` f32 defect as zero,
-  accepts subnormal defects, and rejects the finite `5 * 2^80` norm. The
-  corresponding f64 scales are also covered by the regression.
-- Scope: the private pair metric, its proof, and public solver regressions;
-  no policy, public API, dependency-source, or relaxation changes.
-- Acceptance: exact `3-4-5` witnesses at all binary scales with representable
-  norms in f32/f64; candidate-relative thresholds; multidimensional mixed-sign
-  inputs; rejection of nonfinite/unrepresentable metrics; transactional caller
-  state, allocation, no_std, MSRV and existing solver gates.
-- Repair: shared native-precision scaled accumulation for defect and candidate.
-- Verification: the original source fails the three focused witness tests;
-  final local, independent-review and hosted qualification remain required.
-- Existing ERRPATHS-003 and TRANSFER-004 retain their broader scope.
