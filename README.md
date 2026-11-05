@@ -40,6 +40,10 @@ is required. The defect and candidate Euclidean norms use scaled accumulation
 in the selected scalar precision, preserving representable tiny and large
 norms without squaring their unscaled components.
 
+Aitken's componentwise secant uses native binary scaling to preserve finite
+factors across overflowing or subnormal intermediates. Its denominator
+tolerance remains absolute; genuinely nonfinite factors remain typed errors.
+
 The four caller slices — two states and two interface guesses — change only on
 convergence. Every error, including iteration-budget exhaustion, leaves those
 slices unchanged. The model is outside that transaction: partitions may retain

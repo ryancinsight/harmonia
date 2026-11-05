@@ -124,6 +124,13 @@ two vector operations per iteration and no extra evaluation of `F`. Its
 configuration validates positive finite bounds and a positive finite
 denominator tolerance in the native precision of `T`.
 
+Secant evaluation separates binary exponents from native mantissas, then
+compensates product and quotient rounding before restoring the exponent.
+Thus an overflowing residual difference or intermediate product does not
+discard a finite factor. The tolerance still applies to the unscaled
+denominator; genuinely nonfinite factors still return an error before either
+interface or its history changes.
+
 That history belongs to one coupling window. A new `solve_window` call clears
 the previous residual and factor lengths after validating the four caller
 slices, so the first relaxed update uses the clamped unit factor. Later

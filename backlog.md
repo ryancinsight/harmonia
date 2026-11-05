@@ -1,5 +1,15 @@
 # Backlog — harmonia
 
+## HARMONIA-AITKEN-RANGE-009 — Preserve finite secant factors [patch] — todo
+
+- Outcome: overflowing differences/products and subnormal intermediates retain finite Aitken factors.
+- Reproduction: opposite residuals `-2^127,+2^127` produce factor 1/4 instead of 1/2; an overflowing product rejects a finite secant.
+- Scope: provider Aitken arithmetic and analytical regressions; no policy or dependency changes.
+- Oracle: exact half/cancellation cases over f32/f64 binary scales, absolute-threshold equality, genuine-overflow transaction checks.
+- Dependencies: existing native Eunomia binary scaling; no consumer migration or provider release.
+- Ownership: this repair preserves hook #88 and manifest/lock rescue #75/#76.
+- Delivery: local qualification and independent review precede draft delivery; publication remains disabled.
+
 Gap-audit baseline recorded 2026-08-20 at `3d6682f` (detached). Every item below
 is DoR-shaped: outcome, scope/non-goals, acceptance oracle, dependencies,
 risk/change class, status. Execution ordering lives in `checklist.md`.

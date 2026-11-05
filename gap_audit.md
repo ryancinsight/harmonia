@@ -1,4 +1,20 @@
-# Harmonia metric audit — 2026-10-30
+# Harmonia correctness audits
+
+## Aitken secant range — 2026-11-05 [patch]
+
+At `f0ceba6ed8205981f314382da08f059d4bc0743a`, two public-API
+regressions fail: opposite finite residuals overflow their difference and
+manufacture the minimum factor; a finite FMA update then suffers a spurious
+nonfinite secant error from its unscaled product. Open PRs #75/#76 and #88
+do not change this path and remain untouched.
+
+Binary exponent separation and native FMA rounding corrections repair both
+witnesses. Analytical coverage spans f32/f64 binary scales, subnormal factor
+cancellation, the largest finite factor, absolute-tolerance equality, and
+transactional rejection of genuine factor overflow. No bound, tolerance,
+dependency requirement, external lock record, or publication setting changes.
+
+## Metric audit — 2026-10-30
 
 The metric-range repair [patch] investigates the current public coupling
 solver at `517721292732779767ba17e77ef85ae62f198ad0`. Open PRs #75/#76
