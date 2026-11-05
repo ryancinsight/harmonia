@@ -48,6 +48,14 @@ non-finite secant factor is reported as `RelaxationError::NonFinite`; it is
 never replaced with a target, zero, or floor value. A change in the pair's
 total dimension starts a fresh history on the next successful update.
 
+The secant product and quotient separate binary exponents from native
+mantissas, retaining product and division rounding residuals through FMA.
+Only the final rescaling can overflow. If subtracting two finite residuals
+overflows, their opposite signs permit an exact half scaling before the
+subtraction; the denominator carries that extra binary exponent. Such a
+difference exceeds every finite absolute tolerance. Finite differences are
+compared against the original tolerance before any normalization.
+
 The policy retains reusable vector capacity after its first update. Static
 `FullRelaxation` and `FixedRelaxation` remain allocation-free; the stateful
 policy's history allocation is explicit in its ownership and documentation.
@@ -73,5 +81,8 @@ policy's history allocation is explicit in its ownership and documentation.
 - A failed-window regression changes the caller inputs, starts a new window,
   and observes the clamped unit-factor update rather than a cross-window secant.
 - Generic `f32` and `f64` instantiations with native-precision arithmetic.
+- Public overflowing-difference/product regressions, every binary residual
+  scale, absolute-threshold equality, subnormal factor cancellation, and
+  transactional rejection of genuinely overflowing secant factors.
 - Warning-denied locked check, Nextest, doctest, Rustdoc, and book build at the
   exact provider head.

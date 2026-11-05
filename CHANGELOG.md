@@ -2,6 +2,17 @@
 
 All notable changes to Harmonia are documented in this file.
 
+## 0.1.2 — 2026-11-05
+
+### Fixed
+
+- Compute Aitken secant factors with native binary scaling and compensated
+  multiplication/division. Finite residuals no longer produce a false minimum
+  factor when their difference overflows, or a spurious nonfinite error when
+  their product with the previous factor overflows. Subnormal intermediates
+  retain their range. Absolute tolerance, configured bounds, window history,
+  and transactional errors for genuinely nonfinite factors remain unchanged.
+
 ## 0.1.1 — 2026-10-30
 
 ### Fixed
