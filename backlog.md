@@ -1,15 +1,5 @@
 # Backlog — harmonia
 
-## HARMONIA-AITKEN-RANGE-009 — Preserve finite secant factors [patch] — todo
-
-- Outcome: overflowing differences/products and subnormal intermediates retain finite Aitken factors.
-- Reproduction: opposite residuals `-2^127,+2^127` produce factor 1/4 instead of 1/2; an overflowing product rejects a finite secant.
-- Scope: provider Aitken arithmetic and analytical regressions; no policy or dependency changes.
-- Oracle: exact half/cancellation cases over f32/f64 binary scales, absolute-threshold equality, genuine-overflow transaction checks.
-- Dependencies: existing native Eunomia binary scaling; no consumer migration or provider release.
-- Ownership: this repair preserves hook #88 and manifest/lock rescue #75/#76.
-- Delivery: local qualification and independent review precede draft delivery; publication remains disabled.
-
 Gap-audit baseline recorded 2026-08-20 at `3d6682f` (detached). Every item below
 is DoR-shaped: outcome, scope/non-goals, acceptance oracle, dependencies,
 risk/change class, status. Execution ordering lives in `checklist.md`.
@@ -18,6 +8,19 @@ Measured baseline at that revision: 1 package, 1647 src LOC, 25 test functions,
 3 ADRs, 5 book pages; zero `todo!`/`unimplemented!`/TODO markers, zero
 production `unwrap()`, zero `dyn` sites, zero files over 500 lines, zero
 type-suffixed identifiers, zero re-export shims.
+
+<a id="atlas-harmonia-aitken-range-009"></a>
+## ATLAS-HARMONIA-AITKEN-RANGE-009 — Preserve finite secant factors [patch] — todo
+
+- Priority: correctness.
+- Basis: 2026-11-05; public Aitken regressions on current main.
+- Outcome: preserve finite factors across overflowing differences/products and subnormal intermediates.
+- Oracle: exact half/cancellation over f32/f64 scales, absolute-threshold equality, and genuine-overflow transactions.
+- Scope: native Aitken arithmetic; no policy or dependency changes.
+- Dependencies: existing Eunomia binary scaling; no provider release or consumer migration.
+- Ownership: preserve hook #88 and manifest/lock rescue #75/#76.
+- Checklist: red/green witnesses, 54 native tests, Clippy, MSRV and SemVer pass; final review and delivery gates pending.
+- Publication remains disabled.
 
 <a id="atlas-harmonia-errpaths-003"></a>
 ## ATLAS-HARMONIA-ERRPATHS-003 — Finish transactional error-path coverage [patch] — todo
