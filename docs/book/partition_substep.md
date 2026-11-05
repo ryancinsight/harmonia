@@ -244,7 +244,12 @@ Two obligations do not appear in the signatures.
 
 Dimensions must not change after construction, because `PairWorkspace::for_model`
 allocates against them once and every later slice is validated against those
-lengths.
+lengths. When a workspace is supplied to a pair, each solve reads the current
+model's dimensions and checks both transfer destinations before resetting
+relaxation or calling partition checkpoint, restore, advance, or export
+methods. Each transfer destination is rechecked immediately before invocation,
+and a successful result must have its declared destination length. A mismatch
+returns a typed error without changing the caller slices.
 
 No borrowed slice may be retained. Harmonia hands out `&mut [T]` into its own
 buffers and reuses them across iterations.
@@ -256,9 +261,11 @@ silently inherit an incomplete no-op.
 
 Dimension agreement across the pair is checked rather than assumed. Workspace
 construction rejects a zero-sized state or interface, and it rejects a transfer
-whose destination dimension does not match the receiving partition's input, so a
-mismatched pair fails at construction with the offending role named rather than
-part-way through a solve.
+whose destination dimension does not match the receiving partition's input.
+`PairWorkspace::for_model` reports such mismatches with the offending role.
+`PartitionedPair::new` also accepts a preallocated workspace; each solve checks
+its agreement with the supplied model before resetting relaxation or calling
+checkpoint, restore, advance, or export.
 
 See [Example: Coupled Decay](examples/coupled_decay.md) for the smallest complete
 program: two decaying scalars, heterogeneous substep counts, one window.

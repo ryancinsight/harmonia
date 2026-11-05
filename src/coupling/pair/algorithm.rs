@@ -8,7 +8,9 @@ use horae::{
 use crate::{PairModel, Partition, Relaxation, Substep, Transfer};
 
 use super::{
-    CouplingError, CouplingReport, PairConstructionError, PairWorkspace, metrics::pair_metrics,
+    CouplingError, CouplingReport, PairConstructionError, PairWorkspace,
+    metrics::pair_metrics,
+    workspace::{validate_dimension, validate_transfer},
 };
 
 /// Transactional synchronous Jacobi coupling of two partitions.
@@ -28,6 +30,10 @@ where
     M: PairModel<T>,
 {
     /// Construct a statically routed coupling pair.
+    ///
+    /// Workspace compatibility with `model` is checked before a window is
+    /// evaluated. This lets a workspace be reused with a compatible model
+    /// while reporting an incompatible one as a typed coupling failure.
     ///
     /// # Errors
     ///
@@ -106,6 +112,7 @@ where
     where
         O: IterationObserver<T>,
     {
+        self.workspace.validate_for_model(&self.model)?;
         self.snapshot(first_state, second_state, first_input, second_input)?;
         self.model.relaxation_mut().begin_window();
         let first_checkpoint = self.model.first().checkpoint();
@@ -258,6 +265,12 @@ where
                 &mut self.workspace.second_output,
             )
             .map_err(CouplingError::Second)?;
+        validate_transfer(
+            "first-to-second transfer destination",
+            self.model.first_to_second(),
+            self.workspace.first_output.len(),
+            self.workspace.second_transfer.len(),
+        )?;
         let second_candidate = self
             .model
             .first_to_second()
@@ -266,9 +279,20 @@ where
                 &mut self.workspace.second_transfer,
             )
             .map_err(CouplingError::Transfer)?;
+        validate_dimension(
+            "first-to-second transfer result",
+            self.workspace.second_candidate.len(),
+            second_candidate.len(),
+        )?;
         self.workspace
             .second_candidate
             .copy_from_slice(second_candidate.as_ref());
+        validate_transfer(
+            "second-to-first transfer destination",
+            self.model.second_to_first(),
+            self.workspace.second_output.len(),
+            self.workspace.first_transfer.len(),
+        )?;
         let first_candidate = self
             .model
             .second_to_first()
@@ -277,6 +301,11 @@ where
                 &mut self.workspace.first_transfer,
             )
             .map_err(CouplingError::Transfer)?;
+        validate_dimension(
+            "second-to-first transfer result",
+            self.workspace.first_candidate.len(),
+            first_candidate.len(),
+        )?;
         self.workspace
             .first_candidate
             .copy_from_slice(first_candidate.as_ref());
@@ -360,22 +389,6 @@ where
         cursor = cursor.advance(size).map_err(WindowStepError::Time)?;
     }
     Ok(())
-}
-
-fn validate_dimension<T, FirstError, SecondError>(
-    role: &'static str,
-    expected: usize,
-    actual: usize,
-) -> Result<(), CouplingError<T, FirstError, SecondError>> {
-    if expected == actual {
-        Ok(())
-    } else {
-        Err(CouplingError::Dimension {
-            role,
-            expected,
-            actual,
-        })
-    }
 }
 
 fn map_step<T, E, FirstError, SecondError>(

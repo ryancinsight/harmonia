@@ -18,7 +18,8 @@ where
     ///
     /// The caller must provide scratch storage with exactly the destination
     /// dimension, even when an implementation can return a borrowed source
-    /// directly. This keeps every transfer boundary validated consistently.
+    /// directly. A successful result must have that same dimension. This keeps
+    /// every transfer boundary validated consistently.
     ///
     /// # Errors
     ///

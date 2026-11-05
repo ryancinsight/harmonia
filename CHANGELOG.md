@@ -2,6 +2,16 @@
 
 All notable changes to Harmonia are documented in this file.
 
+## 0.1.3 — 2026-11-05
+
+### Fixed
+
+- Validate a reused workspace against the current pair model before starting
+  a window. Incompatible dimensions now return a typed error instead of
+  handing incorrectly sized buffers to a partition. Both transfer directions
+  also validate successful result lengths before copying them. Errors leave
+  caller slices unchanged; compatible workspaces and transfers remain reusable.
+
 ## 0.1.2 — 2026-11-05
 
 ### Fixed
