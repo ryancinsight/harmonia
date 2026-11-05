@@ -3,7 +3,7 @@ use eunomia::NumericElement;
 
 use crate::{PairModel, Partition, Transfer};
 
-use super::WorkspaceError;
+use super::{CouplingError, WorkspaceError};
 
 /// Reusable fixed-size storage for one pair model.
 ///
@@ -28,6 +28,68 @@ impl<T> PairWorkspace<T>
 where
     T: NumericElement,
 {
+    #[expect(
+        clippy::type_complexity,
+        reason = "the error preserves both partition-specific failure types"
+    )]
+    pub(super) fn validate_for_model<M>(
+        &self,
+        model: &M,
+    ) -> Result<
+        (),
+        CouplingError<T, <M::First as Partition<T>>::Error, <M::Second as Partition<T>>::Error>,
+    >
+    where
+        M: PairModel<T>,
+    {
+        for (role, expected, actual) in [
+            (
+                "first workspace state",
+                model.first().state_dimension(),
+                self.first_initial.len(),
+            ),
+            (
+                "second workspace state",
+                model.second().state_dimension(),
+                self.second_initial.len(),
+            ),
+            (
+                "first workspace input",
+                model.first().input_dimension(),
+                self.first_guess.len(),
+            ),
+            (
+                "second workspace input",
+                model.second().input_dimension(),
+                self.second_guess.len(),
+            ),
+            (
+                "first workspace output",
+                model.first().output_dimension(),
+                self.first_output.len(),
+            ),
+            (
+                "second workspace output",
+                model.second().output_dimension(),
+                self.second_output.len(),
+            ),
+        ] {
+            validate_dimension(role, expected, actual)?;
+        }
+        validate_transfer(
+            "first-to-second transfer destination",
+            model.first_to_second(),
+            self.first_output.len(),
+            self.second_transfer.len(),
+        )?;
+        validate_transfer(
+            "second-to-first transfer destination",
+            model.second_to_first(),
+            self.second_output.len(),
+            self.first_transfer.len(),
+        )
+    }
+
     /// Allocate and validate storage for `model`.
     ///
     /// # Errors
@@ -89,6 +151,39 @@ where
             second_transfer: zeros(second_input),
         })
     }
+}
+
+pub(super) fn validate_dimension<T, FirstError, SecondError>(
+    role: &'static str,
+    expected: usize,
+    actual: usize,
+) -> Result<(), CouplingError<T, FirstError, SecondError>> {
+    if expected == actual {
+        Ok(())
+    } else {
+        Err(CouplingError::Dimension {
+            role,
+            expected,
+            actual,
+        })
+    }
+}
+
+pub(super) fn validate_transfer<T, FirstError, SecondError, Policy>(
+    role: &'static str,
+    policy: &Policy,
+    source_dimension: usize,
+    scratch_dimension: usize,
+) -> Result<(), CouplingError<T, FirstError, SecondError>>
+where
+    T: Clone,
+    Policy: Transfer<T>,
+{
+    validate_dimension(
+        role,
+        scratch_dimension,
+        policy.destination_dimension(source_dimension),
+    )
 }
 
 fn zeros<T>(dimension: usize) -> Box<[T]>

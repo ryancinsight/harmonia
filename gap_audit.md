@@ -1,5 +1,20 @@
 # Harmonia correctness audits
 
+## ATLAS-HARMONIA-WORKSPACE-010 — Workspace/model agreement — 2026-11-05 [patch]
+
+At `f20b831e5508f3b6c82978cf99e18abb0261b39a`, a workspace valid for a
+one-output model could be supplied to a different valid two-output model.
+Correct caller slices then led the partition export to receive a one-entry
+buffer and panic. A matching workspace solves the same linear system.
+
+Each solve now checks all six workspace dimensions and both transfer
+destinations against its model before partition callbacks. Each destination is
+rechecked immediately before invocation, and returned transfer lengths before
+copying. Tests cover both directions, model replacement and recovery, caller
+transaction on errors, and analytical matching-workspace controls. The existing
+broader error-path and conservation items remain open. Delivery evidence
+belongs to the repair pull request; publication remains disabled.
+
 ## ATLAS-HARMONIA-AITKEN-RANGE-009 — Aitken secant range — 2026-11-05 [patch]
 
 At `f0ceba6ed8205981f314382da08f059d4bc0743a`, two public-API

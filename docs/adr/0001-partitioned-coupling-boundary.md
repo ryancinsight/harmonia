@@ -6,6 +6,7 @@
 - Revision: 2026-09-24 — ADR 0004 adds partition-owned replay checkpoints so
   every iteration evaluates the same fixed map.
 - Revision: 2026-09-28 — scope transactions and reset per-window relaxation.
+- Revision: 2026-11-05 — validate reused workspaces and transfer results.
 
 ## Context
 
@@ -48,10 +49,15 @@ zero-sized types. The complete loop is generic over the pair model, scalar,
 transfer, relaxation, observer, and two const subcycle ratios; Rust
 monomorphizes the operation without vtables.
 
-The workspace owns fixed `Box<[T]>` buffers. Construction validates dimensions
-once. A solve with a static relaxation policy performs no allocation and accepts
-only slices of those validated lengths. Stateful policies own any retained
-history explicitly.
+The workspace owns fixed `Box<[T]>` buffers. `PairWorkspace::for_model`
+validates the model dimensions and transfers when allocating. Since a workspace
+can be supplied to another model, each solve checks its dimensions and the
+current transfer destinations before partition callbacks. Each transfer's
+destination is checked again immediately before invocation, and each
+successful result before its copy. A mismatch returns a typed dimension error
+while retaining the caller transaction. A solve with a static
+relaxation policy performs no allocation; stateful policies own retained history
+explicitly.
 
 ## Theorems and proof obligations
 

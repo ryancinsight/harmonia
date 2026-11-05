@@ -53,6 +53,10 @@ while reusing previously allocated capacity. Workspace allocation occurs during
 construction; repeated solves with Harmonia's borrowed transfer policies reuse
 fixed boxed slices without allocation.
 
+A solve validates its workspace against the current model before invoking
+partitions. Incompatible workspace or transfer-result dimensions produce a
+typed error and preserve the caller slices.
+
 ```rust
 use aequitas::systems::si::quantities::Time;
 use athena_core::{ConvergencePolicy, NoObserver};

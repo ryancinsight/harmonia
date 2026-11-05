@@ -69,9 +69,9 @@ impl core::error::Error for PairConstructionError {}
 #[non_exhaustive]
 #[derive(Clone, Debug, PartialEq)]
 pub enum CouplingError<T, FirstError, SecondError> {
-    /// Caller slice does not match its validated workspace dimension.
+    /// A caller slice, workspace, or transfer result has an incompatible dimension.
     Dimension {
-        /// Slice role.
+        /// Role of the incompatible dimension.
         role: &'static str,
         /// Required entries.
         expected: usize,

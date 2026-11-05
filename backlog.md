@@ -20,6 +20,8 @@ type-suffixed identifiers, zero re-export shims.
   truly overflowing metrics preserve all four caller buffers bit-for-bit.
   These cases cover the metric boundary; the remaining variants below still
   need their own transaction oracles.
+- Workspace and transfer-result dimension errors now have transaction oracles;
+  caller-slice and other error paths remain to be covered.
 
 - Outcome: the transaction theorem is verified on every reachable error path,
   not one.
@@ -28,7 +30,7 @@ type-suffixed identifiers, zero re-export shims.
   test partition declares `type Error = Infallible`
   (`tests/support/mod.rs:21`, `:61`, `:99`), so `CouplingError::First` and
   `::Second` (`src/coupling/pair/error.rs:90`) are never constructed, and
-  `Dimension`, `Time`, `Subcycle`, and `Transfer` still lack transaction
+  caller-slice `Dimension`, `Time`, `Subcycle`, and `Transfer` still lack transaction
   oracles — while ADR 0001 claims the theorem for *every* error path.
 - Scope: `tests/theorems.rs`, `tests/support/mod.rs` (a failing partition
   fixture and a failing transfer fixture), no source change expected.
@@ -45,14 +47,10 @@ type-suffixed identifiers, zero re-export shims.
 
 - Outcome: the scratch-backed transfer path is exercised end to end, and
   interface transfer carries a conservation or consistency oracle.
-- Evidence of the gap: `IndexTransfer` is tested only standalone
-  (`tests/policies.rs:46`); every coupling test uses `IdentityTransfer`, which
-  returns a borrow of the source and never writes
-  `workspace.first_transfer`/`second_transfer`
-  (`src/coupling/pair/algorithm.rs:251`). The dimension-changing branch of
-  `export_and_transfer` and the `copy_from_slice` from a scratch-backed `Cow`
-  therefore have no coupled-solve coverage. No test asserts any transferred
-  quantity is conserved or consistently reproduced.
+- Evidence of the gap: the workspace-contract regression now exercises
+  `IndexTransfer` and a scratch-backed replication in coupled linear solves,
+  but the transfer-level conservation and constant-field properties below
+  still need independent oracles.
 - Scope: `tests/`, plus whatever `Transfer<T>` doc obligation the conservation
   statement needs. Conservation-aware *nonmatching-mesh* transfer stays out of
   scope: it needs a mesh, which Harmonia does not own
