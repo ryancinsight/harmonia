@@ -11,8 +11,9 @@ use std::{
 use aequitas::systems::si::quantities::Time;
 use athena_core::{ConvergencePolicy, NoObserver};
 use harmonia::{
-    CouplingError, FullRelaxation, IdentityTransfer, IndexTransfer, PairComponents, PairWorkspace,
-    Partition, PartitionedPair, Substep, Transfer, TransferError,
+    AitkenRelaxation, CouplingError, FullRelaxation, IdentityTransfer, IndexTransfer,
+    PairComponents, PairModel, PairWorkspace, Partition, PartitionedPair, Relaxation, Substep,
+    Transfer, TransferError,
 };
 use horae::time::{Instant, StepSize};
 

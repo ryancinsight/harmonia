@@ -1,6 +1,79 @@
 use super::*;
 
 #[test]
+fn rejected_workspace_preserves_existing_aitken_history() {
+    let mut relaxation = AitkenRelaxation::new(0.05_f64, 1.5, 1e-12).expect("valid bounds");
+    let (mut history_first, mut history_second) = ([0.0], [0.0]);
+    relaxation
+        .update_pair(&mut history_first, &[1.0], &mut history_second, &[2.0])
+        .expect("valid initial history");
+    let calls = Rc::new(Cell::new(0));
+    let mut first = sized_partition(0.5, &calls);
+    first.output = 2;
+    let model = PairComponents::new(
+        first,
+        sized_partition(0.25, &calls),
+        Directional::Select,
+        Directional::Identity,
+        relaxation,
+    );
+    let mut pair =
+        PartitionedPair::<_, f64, 1, 1>::new(model, unit_workspace()).expect("positive subcycles");
+    let (mut first_state, mut second_state, mut first_input, mut second_input) =
+        ([1.0], [2.0], [-0.0_f64], [0.0]);
+    let before = [
+        first_state[0],
+        second_state[0],
+        first_input[0],
+        second_input[0],
+    ]
+    .map(f64::to_bits);
+    let policy = ConvergencePolicy::new(1e-12, 1e-12, 100).expect("valid policy");
+    let result = pair.solve_window(
+        instant(),
+        window(),
+        &mut first_state,
+        &mut second_state,
+        &mut first_input,
+        &mut second_input,
+        &policy,
+        &mut NoObserver,
+    );
+    pair.model_mut()
+        .relaxation_mut()
+        .update_pair(&mut history_first, &[0.5], &mut history_second, &[1.0])
+        .expect("the retained history remains valid");
+    assert!(
+        (history_first[0] - 2.0 / 3.0).abs() < 1e-12,
+        "first retained value: {}",
+        history_first[0]
+    );
+    assert!(
+        (history_second[0] - 4.0 / 3.0).abs() < 1e-12,
+        "second retained value: {}",
+        history_second[0]
+    );
+    assert!(matches!(
+        result,
+        Err(CouplingError::Dimension {
+            role: "first workspace output",
+            expected: 2,
+            actual: 1
+        })
+    ));
+    assert_eq!(
+        [
+            first_state[0],
+            second_state[0],
+            first_input[0],
+            second_input[0]
+        ]
+        .map(f64::to_bits),
+        before
+    );
+}
+
+#[test]
 fn replacement_model_is_rechecked_and_the_pair_recovers_after_rejection() {
     let calls = Rc::new(Cell::new(0));
     let model = PairComponents::new(

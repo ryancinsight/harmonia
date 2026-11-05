@@ -51,11 +51,12 @@ monomorphizes the operation without vtables.
 
 The workspace owns fixed `Box<[T]>` buffers. `PairWorkspace::for_model`
 validates the model dimensions and transfers when allocating. Since a workspace
-can be supplied to another model, each solve checks its dimensions and the
-current transfer destinations before partition callbacks. Each transfer's
-destination is checked again immediately before invocation, and each
-successful result before its copy. A mismatch returns a typed dimension error
-while retaining the caller transaction. A solve with a static
+can be supplied to another model, each solve reads its declared dimensions and
+checks the current transfer destinations before resetting relaxation or
+calling partition checkpoint, restore, advance, or export methods. Each
+transfer's destination is checked again immediately before invocation, and
+each successful result before its copy. A mismatch returns a typed dimension
+error while retaining the caller transaction. A solve with a static
 relaxation policy performs no allocation; stateful policies own retained history
 explicitly.
 
