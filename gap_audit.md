@@ -1,6 +1,6 @@
 # Harmonia correctness audits
 
-## Aitken secant range — 2026-11-05 [patch]
+## ATLAS-HARMONIA-AITKEN-RANGE-009 — Aitken secant range — 2026-11-05 [patch]
 
 At `f0ceba6ed8205981f314382da08f059d4bc0743a`, two public-API
 regressions fail: opposite finite residuals overflow their difference and
@@ -13,6 +13,12 @@ witnesses. Analytical coverage spans f32/f64 binary scales, subnormal factor
 cancellation, the largest finite factor, absolute-tolerance equality, and
 transactional rejection of genuine factor overflow. No bound, tolerance,
 dependency requirement, external lock record, or publication setting changes.
+
+Source repair and independent source review are complete. The 54 native
+tests, MSRV, Clippy, SemVer, supply-chain, and pinned book checks pass.
+Final hosted delivery and documentation deployment are tracked by
+[Harmonia #91](https://github.com/ryancinsight/harmonia/pull/91). The active
+backlog retains only outstanding work; this completed repair is archived here.
 
 ## Metric audit — 2026-10-30
 
