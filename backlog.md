@@ -10,7 +10,7 @@ production `unwrap()`, zero `dyn` sites, zero files over 500 lines, zero
 type-suffixed identifiers, zero re-export shims.
 
 <a id="atlas-harmonia-aitken-range-009"></a>
-## ATLAS-HARMONIA-AITKEN-RANGE-009 — Preserve finite secant factors [patch] — todo
+## ATLAS-HARMONIA-AITKEN-RANGE-009 — Preserve finite secant factors [patch] — done 2026-11-05
 
 - Priority: correctness.
 - Basis: 2026-11-05; public Aitken regressions on current main.
@@ -19,7 +19,7 @@ type-suffixed identifiers, zero re-export shims.
 - Scope: native Aitken arithmetic; no policy or dependency changes.
 - Dependencies: existing Eunomia binary scaling; no provider release or consumer migration.
 - Ownership: preserve hook #88 and manifest/lock rescue #75/#76.
-- Checklist: red/green witnesses, 54 native tests, Clippy, MSRV and SemVer pass; final review and delivery gates pending.
+- Checklist: red/green witnesses, 54 native tests, Clippy, MSRV, SemVer and independent source review pass; delivery gates: [#91](https://github.com/ryancinsight/harmonia/pull/91).
 - Publication remains disabled.
 
 <a id="atlas-harmonia-errpaths-003"></a>
