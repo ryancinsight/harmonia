@@ -12,6 +12,7 @@ mod support;
 use std::alloc::System;
 
 use athena_core::ConvergencePolicy;
+use harmonia::{FixedRelaxation, Relaxation};
 use mnemosyne::counting::{AllocationDelta, CountingAllocator, measure};
 
 use support::{LastObserver, LinearPartition, Scaffold, linear_pair, solve};
@@ -47,5 +48,18 @@ fn repeated_window_solves_allocate_nothing_after_workspace_construction() {
         }
     });
 
+    assert_eq!(delta, AllocationDelta::default());
+}
+
+#[test]
+fn extreme_fixed_relaxation_allocates_nothing() {
+    let mut policy = FixedRelaxation::new(0.5_f64).expect("valid unit-interval weight");
+    let mut first = [f64::MAX];
+    let mut second = [-f64::MAX];
+    let (result, delta) =
+        measure(|| policy.update_pair(&mut first, &[-f64::MAX], &mut second, &[f64::MAX]));
+    result.expect("the finite midpoints are representable");
+    assert_eq!(first[0].to_bits(), 0.0_f64.to_bits());
+    assert_eq!(second[0].to_bits(), 0.0_f64.to_bits());
     assert_eq!(delta, AllocationDelta::default());
 }

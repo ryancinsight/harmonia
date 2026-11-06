@@ -1,5 +1,22 @@
 # Harmonia correctness audits
 
+## ATLAS-HARMONIA-FIXED-RANGE-011 — Fixed relaxation range — 2026-11-06 [patch]
+
+At `5db5f4afdbb758516ae9e70a84f4e13526896ee6`, unit weight applied to a
+finite maximum and candidate one returned zero, while half weight applied to
+opposite finite extrema returned a nonfinite error for a representable zero
+midpoint. Both failures were reproduced through the public API in f32 and f64.
+For a near-unit weight, an inexact but finite difference also turned an
+exact result of `-2^(-2p)` into `-2^(-p)` at precision `p`.
+
+The unit-weight path returns the candidate while retaining transactional input
+validation. An exact finite difference keeps the existing fused update; an
+inexact one retains its subtraction residual with a second fused operation.
+An overflowed finite difference uses native-precision compensated arithmetic.
+Regressions cover both scalar precisions, wrapper scalars, cancellation,
+signed zero, ordinary fused results, and transactional rejection. Publication
+remains disabled; delivery and final qualification are recorded in the repair.
+
 ## ATLAS-HARMONIA-WORKSPACE-010 — Workspace/model agreement — 2026-11-05 [patch]
 
 At `f20b831e5508f3b6c82978cf99e18abb0261b39a`, a workspace valid for a

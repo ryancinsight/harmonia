@@ -215,7 +215,7 @@ checksum = "e629b9b98ef3dd8afe6ca2bd0f89306cec16d43d907889945bc5d6687f2f13c7"
 
 [[package]]
 name = "harmonia"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "aequitas",
  "athena-core",
@@ -646,8 +646,8 @@ dependencies = [
 
 [[package]]
 name = "themis-topology"
-version = "0.11.3"
-source = "git+https://github.com/ryancinsight/themis#a421be512bf93c459cc9e6047d7bda466c3beb6e"
+version = "0.11.5"
+source = "git+https://github.com/ryancinsight/themis#f5fb5fcc048842807c4c38fa9929b52bf6c81571"
 dependencies = [
  "libc",
  "melinoe",
