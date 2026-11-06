@@ -9,7 +9,8 @@ All notable changes to Harmonia are documented in this file.
 - Return the candidate exactly for unit fixed-relaxation weight. When the
   difference of finite endpoints overflows, evaluate the convex update instead
   of rejecting a finite result. Retain the native-precision subtraction
-  residual when a finite difference rounds, reducing cancellation error.
+  residual when a finite difference rounds, reducing cancellation error. Near
+  underflow, retain product tails to resolve subnormal halfway cases.
 
 ### Changed
 

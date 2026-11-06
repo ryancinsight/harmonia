@@ -14,8 +14,11 @@ validation. An exact finite difference keeps the existing fused update; an
 inexact one retains its subtraction residual with a second fused operation.
 An overflowed finite difference uses native-precision compensated arithmetic.
 Regressions cover both scalar precisions, wrapper scalars, cancellation,
-signed zero, ordinary fused results, and transactional rejection. Publication
-remains disabled; delivery and final qualification are recorded in the repair.
+signed zero, ordinary fused results, and transactional rejection. Near
+underflow, exponent-tagged native-scalar terms preserve product tails through
+exact midpoint comparisons, including ties-to-even and signed-zero results.
+Publication remains disabled; delivery and final qualification are recorded
+in the repair.
 
 ## ATLAS-HARMONIA-WORKSPACE-010 — Workspace/model agreement — 2026-11-05 [patch]
 

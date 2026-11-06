@@ -1,6 +1,10 @@
+use core::cell::Cell;
+
 use eunomia::{NumericElement, RealField};
 
-use super::{InvalidRelaxation, Relaxation, RelaxationError, slice::update_pair_slices};
+use super::{
+    InvalidRelaxation, Relaxation, RelaxationError, exact_round, slice::update_pair_slices,
+};
 
 /// Validated fixed under-relaxation policy.
 ///
@@ -67,32 +71,76 @@ where
                 },
             );
         }
+        let format = Cell::new(None);
         update_pair_slices(
             first_current,
             first_candidate,
             second_current,
             second_candidate,
-            |current, candidate| fixed_step(current, candidate, weight),
+            |current, candidate| fixed_step(current, candidate, weight, &format),
         )
     }
 }
 
 /// Retain the rounding residual of a finite difference before interpolation.
 #[inline]
-fn fixed_step<T: RealField>(current: T, candidate: T, weight: T) -> T {
+fn fixed_step<T: RealField>(
+    current: T,
+    candidate: T,
+    weight: T,
+    format: &Cell<Option<(i32, i32)>>,
+) -> T {
     let difference = candidate - current;
     if current.is_finite() && candidate.is_finite() {
         if !difference.is_finite() {
-            return overflow_safe_step(current, candidate, weight);
+            let update = overflow_safe_step(current, candidate, weight);
+            return exact_near_underflow(current, candidate, weight, update, format);
         }
         let (_, difference_error) = two_sum(candidate, -current);
         let update = weight.scalar_fmadd(difference, current);
         if difference_error != <T as NumericElement>::ZERO {
-            return weight.scalar_fmadd(difference_error, update);
+            let corrected = weight.scalar_fmadd(difference_error, update);
+            return exact_near_underflow(current, candidate, weight, corrected, format);
         }
         return update;
     }
     weight.scalar_fmadd(difference, current)
+}
+
+/// Resolve underflow and its rounding boundary without losing product tails.
+#[inline]
+fn exact_near_underflow<T: RealField>(
+    current: T,
+    candidate: T,
+    weight: T,
+    update: T,
+    format: &Cell<Option<(i32, i32)>>,
+) -> T {
+    let zero = <T as NumericElement>::ZERO;
+    if update.is_finite() && update != zero && update.abs() >= <T as RealField>::EPSILON {
+        return update;
+    }
+    let (minimum_subnormal, precision) = if let Some(format) = format.get() {
+        format
+    } else {
+        let Some(minimum_subnormal) = exact_round::minimum_subnormal_exponent::<T>() else {
+            return <T as NumericElement>::NAN;
+        };
+        let Some(epsilon_exponent) = <T as RealField>::EPSILON.binary_exponent() else {
+            return <T as NumericElement>::NAN;
+        };
+        let discovered = (minimum_subnormal, 1 - epsilon_exponent);
+        format.set(Some(discovered));
+        discovered
+    };
+    let normal = update
+        .binary_exponent()
+        .is_some_and(|exponent| exponent >= minimum_subnormal + precision - 1);
+    if update.is_finite() && update != zero && normal {
+        return update;
+    }
+    exact_round::convex(current, candidate, weight, minimum_subnormal, precision)
+        .unwrap_or(<T as NumericElement>::NAN)
 }
 
 /// Evaluate the convex update when opposite finite endpoints overflow their
@@ -125,7 +173,7 @@ fn overflow_safe_step<T: RealField>(current: T, candidate: T, weight: T) -> T {
 
 /// Error-free sum decomposition when the sum remains finite.
 #[inline]
-fn two_sum<T: RealField>(left: T, right: T) -> (T, T) {
+pub(super) fn two_sum<T: RealField>(left: T, right: T) -> (T, T) {
     let sum = left + right;
     let virtual_right = sum - left;
     let error = (left - (sum - virtual_right)) + (right - virtual_right);

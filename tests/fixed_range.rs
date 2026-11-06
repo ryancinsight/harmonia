@@ -228,3 +228,129 @@ fn finite_difference_correction_keeps_a_small_positive_candidate() {
         .expect("the exact convex result is finite");
     assert_eq!(double[0].to_bits(), (3.0 * double_candidate).to_bits());
 }
+
+#[test]
+fn finite_difference_correction_does_not_erase_a_subnormal_result() {
+    // The exact result is (13_773_279 / 16_777_216) times the least
+    // positive subnormal, which rounds to that subnormal instead of zero.
+    let mut first = [f32::from_bits(0x00e1_9353)];
+    let candidate = f32::from_bits(0x8098_b346);
+    let weight = f32::from_bits(0x3f18_a8c9);
+    FixedRelaxation::new(weight)
+        .expect("the weight is in the unit interval")
+        .update_pair(&mut first, &[candidate], &mut [], &[])
+        .expect("the exact convex result is finite");
+    assert_eq!(first[0].to_bits(), 1);
+
+    let mut second = [f64::from_bits(0x0014_0c76_ebdf_9e8f)];
+    let candidate = f64::from_bits(0x8012_7532_b5bb_bab6);
+    let weight = f64::from_bits(0x3fe0_a939_9c6f_85b7);
+    FixedRelaxation::new(weight)
+        .expect("the weight is in the unit interval")
+        .update_pair(&mut second, &[candidate], &mut [], &[])
+        .expect("the exact convex result is finite");
+    assert_eq!(second[0].to_bits(), 1);
+}
+
+#[test]
+fn subnormal_product_tail_breaks_halfway_ties() {
+    // The first exact result is eta/2 + eta^2 and the second is
+    // 3*eta/2 - 3*eta^2. Both round to eta; dropping the product tails
+    // changes them to ties that round to zero and 2*eta, respectively.
+    let mut single = [-f32::from_bits(1), f32::from_bits(3)];
+    let mut single_negative = [f32::from_bits(1)];
+    FixedRelaxation::new(f32::from_bits(1))
+        .expect("the smallest positive weight is valid")
+        .update_pair(&mut single, &[1.5, -1.5], &mut single_negative, &[-1.5])
+        .expect("the convex result is finite");
+    assert_eq!(single[0].to_bits(), 1);
+    assert_eq!(single[1].to_bits(), 1);
+    assert_eq!(single_negative[0].to_bits(), 0x8000_0001);
+
+    let mut double = [-f64::from_bits(1), f64::from_bits(3)];
+    let mut double_negative = [f64::from_bits(1)];
+    FixedRelaxation::new(f64::from_bits(1))
+        .expect("the smallest positive weight is valid")
+        .update_pair(&mut double, &[1.5, -1.5], &mut double_negative, &[-1.5])
+        .expect("the convex result is finite");
+    assert_eq!(double[0].to_bits(), 1);
+    assert_eq!(double[1].to_bits(), 1);
+    assert_eq!(double_negative[0].to_bits(), 0x8000_0000_0000_0001);
+}
+
+#[test]
+fn wrapped_scalars_retain_subnormal_product_tails() {
+    let mut single = [F32(-f32::from_bits(1))];
+    FixedRelaxation::new(F32(f32::from_bits(1)))
+        .expect("the smallest positive weight is valid")
+        .update_pair(&mut single, &[F32(1.5)], &mut [], &[])
+        .expect("the convex result is finite");
+    assert_eq!(single[0].0.to_bits(), 1);
+
+    let mut double = [F64(-f64::from_bits(1))];
+    FixedRelaxation::new(F64(f64::from_bits(1)))
+        .expect("the smallest positive weight is valid")
+        .update_pair(&mut double, &[F64(1.5)], &mut [], &[])
+        .expect("the convex result is finite");
+    assert_eq!(double[0].0.to_bits(), 1);
+}
+
+#[test]
+fn inexact_differences_keep_subnormal_halfway_ties_even() {
+    let mut single = [f32::from_bits(0x0080_0001), f32::from_bits(0x0080_0003)];
+    let single_candidate = [f32::from_bits(0x8080_0000); 2];
+    let mut single_negative = [f32::from_bits(0x8080_0001)];
+    FixedRelaxation::new(0.5_f32)
+        .expect("half weight is valid")
+        .update_pair(
+            &mut single,
+            &single_candidate,
+            &mut single_negative,
+            &[f32::MIN_POSITIVE],
+        )
+        .expect("the convex results are finite");
+    assert_eq!(single[0].to_bits(), 0);
+    assert_eq!(single[1].to_bits(), 2);
+    assert_eq!(single_negative[0].to_bits(), (-0.0_f32).to_bits());
+
+    let mut double = [
+        f64::from_bits(0x0010_0000_0000_0001),
+        f64::from_bits(0x0010_0000_0000_0003),
+    ];
+    let double_candidate = [f64::from_bits(0x8010_0000_0000_0000); 2];
+    let mut double_negative = [f64::from_bits(0x8010_0000_0000_0001)];
+    FixedRelaxation::new(0.5_f64)
+        .expect("half weight is valid")
+        .update_pair(
+            &mut double,
+            &double_candidate,
+            &mut double_negative,
+            &[f64::MIN_POSITIVE],
+        )
+        .expect("the convex results are finite");
+    assert_eq!(double[0].to_bits(), 0);
+    assert_eq!(double[1].to_bits(), 2);
+    assert_eq!(double_negative[0].to_bits(), (-0.0_f64).to_bits());
+}
+
+#[test]
+fn small_normal_results_remain_accepted() {
+    let mut single = [f32::from_bits(0x0140_0000)];
+    FixedRelaxation::new(0.25_f32)
+        .expect("quarter weight is valid")
+        .update_pair(&mut single, &[f32::from_bits(0x8000_0001)], &mut [], &[])
+        .expect("the convex result is finite and normal");
+    assert_eq!(single[0].to_bits(), 0x0110_0000);
+
+    let mut double = [f64::from_bits(0x0028_0000_0000_0000)];
+    FixedRelaxation::new(0.25_f64)
+        .expect("quarter weight is valid")
+        .update_pair(
+            &mut double,
+            &[f64::from_bits(0x8000_0000_0000_0001)],
+            &mut [],
+            &[],
+        )
+        .expect("the convex result is finite and normal");
+    assert_eq!(double[0].to_bits(), 0x0022_0000_0000_0000);
+}

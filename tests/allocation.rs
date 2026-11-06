@@ -54,12 +54,21 @@ fn repeated_window_solves_allocate_nothing_after_workspace_construction() {
 #[test]
 fn extreme_fixed_relaxation_allocates_nothing() {
     let mut policy = FixedRelaxation::new(0.5_f64).expect("valid unit-interval weight");
+    let mut tiny_policy =
+        FixedRelaxation::new(f64::from_bits(1)).expect("smallest positive weight is valid");
     let mut first = [f64::MAX];
     let mut second = [-f64::MAX];
-    let (result, delta) =
-        measure(|| policy.update_pair(&mut first, &[-f64::MAX], &mut second, &[f64::MAX]));
-    result.expect("the finite midpoints are representable");
+    let mut tiny = [-f64::from_bits(1)];
+    let (result, delta) = measure(|| {
+        (
+            policy.update_pair(&mut first, &[-f64::MAX], &mut second, &[f64::MAX]),
+            tiny_policy.update_pair(&mut tiny, &[1.5], &mut [], &[]),
+        )
+    });
+    result.0.expect("the finite midpoints are representable");
+    result.1.expect("the subnormal result is representable");
     assert_eq!(first[0].to_bits(), 0.0_f64.to_bits());
     assert_eq!(second[0].to_bits(), 0.0_f64.to_bits());
+    assert_eq!(tiny[0].to_bits(), 1);
     assert_eq!(delta, AllocationDelta::default());
 }
