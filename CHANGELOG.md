@@ -2,6 +2,21 @@
 
 All notable changes to Harmonia are documented in this file.
 
+## 0.1.4 — 2026-11-06
+
+### Fixed
+
+- Return the candidate exactly for unit fixed-relaxation weight. When the
+  difference of finite endpoints overflows, evaluate the convex update instead
+  of rejecting a finite result. Retain the native-precision subtraction
+  residual when a finite difference rounds, reducing cancellation error. Near
+  underflow, retain product tails to resolve subnormal halfway cases.
+
+### Changed
+
+- Refresh the development-only transitive `themis-topology` lock to the
+  current compatible default-branch revision, 0.11.5.
+
 ## 0.1.3 — 2026-11-05
 
 ### Fixed

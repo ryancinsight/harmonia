@@ -3,6 +3,7 @@
 mod aitken;
 mod contract;
 mod error;
+mod exact_round;
 mod fixed;
 mod full;
 mod slice;
