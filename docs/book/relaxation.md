@@ -166,12 +166,13 @@ x_i \leftarrow x_i + \omega\,\bigl(c_i - x_i\bigr),
 
 All arithmetic stays in the precision of `T`. Unit weight returns the candidate
 exactly. An exactly representable difference uses a fused multiply-add; when
-the difference rounds, a second fused operation retains its residual. If a
-finite difference overflows, a compensated formulation evaluates the same
-convex update. A zero or subnormal tentative result uses exponent-tagged
-native-precision terms to resolve the final rounding boundary, including
-ties-to-even and signed zero. Ordinary normal-range updates can round more
-than once; the policy does not promise a single rounding of the full expression.
+the difference rounds, a second fused operation retains its residual. If
+subtracting finite endpoints overflows, a compensated formulation evaluates
+the same convex update. A zero or subnormal tentative result from a compensated
+path uses exponent-tagged native-precision terms to resolve the final rounding
+boundary, including ties-to-even and signed zero. Ordinary normal-range updates
+can round more than once; the policy does not promise a single rounding of the
+full expression.
 
 Both policies check that the current and candidate slices agree in length,
 reporting `RelaxationError::Dimension` with both lengths, and both reject a
