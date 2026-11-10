@@ -1,4 +1,4 @@
-# Backlog — harmonia
+# Backlog - harmonia
 
 Gap-audit baseline recorded 2026-08-20 at `3d6682f` (detached). Every item below
 is DoR-shaped: outcome, scope/non-goals, acceptance oracle, dependencies,
@@ -9,10 +9,45 @@ Measured baseline at that revision: 1 package, 1647 src LOC, 25 test functions,
 production `unwrap()`, zero `dyn` sites, zero files over 500 lines, zero
 type-suffixed identifiers, zero re-export shims.
 
+## Milestone ladder
+
+Release scope: [ADR 0005](docs/adr/0005-release-scope-1-0.md).
+
+<a id="M-contract-proof"></a>
+**M-contract-proof** (0.2.0)
+
+- Outcome: coupling contract verification complete for current two-partition API.
+- exit: `cargo nextest run --locked --all-features` passes including transaction/error-path coverage for ATLAS-HARMONIA-ERRPATHS-003 and transfer oracle coverage for ATLAS-HARMONIA-TRANSFER-004.
+- exit: `cargo test --locked --doc --all-features` passes.
+- exit: no open `correctness`/`verification` backlog items assigned to `M-contract-proof`.
+- needs: (none)
+- Non-goals: nonmatching mesh transfer; new coupling topology.
+
+<a id="M-consumer-validation"></a>
+**M-consumer-validation** (0.3.0)
+
+- Outcome: a real consumer validates `Partition<T>` semantics via `PartitionedPair`.
+- exit: ATLAS-HARMONIA-CONSUME-005 acceptance oracle satisfied and recorded with named consumer evidence.
+- exit: `cargo clippy --locked --all-targets --all-features -- -D warnings` passes.
+- needs: M-contract-proof
+- Non-goals: editing consumer repositories from harmonia.
+
+<a id="M-1.0"></a>
+**M-1.0** (1.0.0)
+
+- Outcome: harmonia 1.0 release-ready under release authority.
+- exit: `cargo semver-checks` (release gate configuration) passes for the 1.0 candidate.
+- exit: `cargo publish --dry-run --allow-dirty=false` prerequisites satisfied (readiness; actual publish requires release authority and publish flag decision).
+- exit: `cargo doc --locked --no-deps --all-features` and `cargo run --locked --example coupled_decay` pass.
+- exit: no open `correctness` backlog items.
+- needs: M-consumer-validation
+- Non-goals: forcing `publish = true` without explicit release/deploy authority.
+
 <a id="atlas-harmonia-errpaths-003"></a>
-## ATLAS-HARMONIA-ERRPATHS-003 — Finish transactional error-path coverage [patch] — todo
+## ATLAS-HARMONIA-ERRPATHS-003 - Finish transactional error-path coverage [patch] - todo
 
 - Priority: correctness.
+- milestone: M-contract-proof
 - Basis: 2026-10-30; current solver and regression inspection.
 - Metric-range repair: the 0.1.1 scaled norm prevents false zero-residual
   convergence and spurious overflow. Public metric regressions cover every
@@ -43,8 +78,9 @@ type-suffixed identifiers, zero re-export shims.
 - Dependencies: none.
 - Risk/change class: `[verification]`, `[patch]`. Effort S.
 
-## ATLAS-HARMONIA-TRANSFER-004 — Non-identity transfer never runs inside the loop [patch] — todo
+## ATLAS-HARMONIA-TRANSFER-004 - Non-identity transfer never runs inside the loop [patch] - todo
 
+- milestone: M-contract-proof
 - Outcome: the scratch-backed transfer path is exercised end to end, and
   interface transfer carries a conservation or consistency oracle.
 - Evidence of the gap: the workspace-contract regression now exercises
@@ -66,8 +102,9 @@ type-suffixed identifiers, zero re-export shims.
 - Dependencies: none.
 - Risk/change class: `[verification]`, `[patch]`. Effort M.
 
-## ATLAS-HARMONIA-CONSUME-005 — Coupling loop has no consumer [minor] — todo
+## ATLAS-HARMONIA-CONSUME-005 - Coupling loop has no consumer [minor] - todo
 
+- milestone: M-consumer-validation
 - Outcome: at least one integrator instantiates `PartitionedPair` against a
   real physics partition, so the `Partition<T>` contract is validated by use
   rather than by fixtures.
@@ -154,8 +191,9 @@ type-suffixed identifiers, zero re-export shims.
   compiles harmonia and its first-party graph clean, so `rust-version = 1.95`
   is a true claim rather than an aspiration.
 
-## ATLAS-HARMONIA-ALLOWATTR-008 — Test-harness blanket allow [patch] — todo
+## ATLAS-HARMONIA-ALLOWATTR-008 - Test-harness blanket allow [patch] - todo
 
+- milestone: M-contract-proof
 - Outcome: the crate's own "no blanket suppressions" floor holds in the test
   tree too.
 - Evidence of the gap: `tests/support/mod.rs:1` carries

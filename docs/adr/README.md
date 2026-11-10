@@ -13,3 +13,4 @@
 | [0002](0002-stateful-pair-relaxation.md) | Stateful pair relaxation boundary | Accepted |
 | [0003](0003-aitken-relaxation-policy.md) | Provider-owned Aitken relaxation policy | Accepted |
 | [0004](0004-partition-replay-checkpoints.md) | Partition replay checkpoints | Accepted |
+| [0005](0005-release-scope-1-0.md) | Harmonia release scope for 1.0 | Accepted |
