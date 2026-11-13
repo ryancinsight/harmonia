@@ -1,5 +1,7 @@
 //! Executable evidence for Phase 0 coupling theorems.
 
+#[path = "theorems/error_paths.rs"]
+mod error_paths;
 mod support;
 
 use core::{convert::Infallible, fmt::Debug};
