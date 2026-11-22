@@ -1,5 +1,15 @@
 # Backlog - harmonia
 
+<a id="harmonia-stable-qualification"></a>
+## HARMONIA-STABLE-QUALIFICATION — harmonia stable-release qualification [patch] — todo
+- priority: verification; milestone: M-consumer-validation; basis: `3b16405022ba`.
+- Outcome: Prove a real coupling consumer and decide the registry route needed by two dependents. Follow the [release scope](docs/adr/0005-release-scope-1-0.md) and [milestone exits](backlog/milestones.md). See the [proposed decision](docs/adr/0006-registry-graduation.md).
+- Representative manifest `harmonia 0.1.4`. Target 1.0.0. The current Cargo manifest disables publication.
+- [ ] [patch] Exercise non-identity transfer inside PartitionedPair and a failed advance followed by replay. Check the exchanged values, checkpoint state and residual in the existing loop.
+- [ ] [minor] Identify and run a real partition in CFDrs or Ares. Record the exact consumer revision, transferred field and analytical result to close ATLAS-HARMONIA-CONSUME-005.
+- [ ] [arch] Review the proposed registry graduation after the consumer proof. Until an authorized, verified archive exists, mark the ares-coupling and cfd-2d publication edges blocked. Qualify the Git contract separately under ADR 0005.
+- [ ] [patch] Attach exact-revision evidence for the local exits and this member’s [Atlas qualification criteria](https://github.com/ryancinsight/atlas/blob/17b0124a7548ad81e817284afc5cb115c1d1bc78/docs/parity/repositories.json).
+
 Gap-audit baseline recorded 2026-08-20 at `3d6682f` (detached). Every item below
 is DoR-shaped: outcome, scope/non-goals, acceptance oracle, dependencies,
 risk/change class, status. Execution ordering lives in `checklist.md`.
