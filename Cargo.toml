@@ -1,5 +1,5 @@
 [package]
-name = "harmonia"
+name = "harmonia-coupling"
 version = "0.1.4"
 edition = "2024"
 rust-version = "1.95"
@@ -11,6 +11,9 @@ readme = "README.md"
 keywords = ["multiphysics", "coupling", "simulation", "no-std"]
 categories = ["no-std", "science"]
 publish = false
+
+[lib]
+name = "harmonia"
 
 [dependencies]
 aequitas = { version = "0.5.0", default-features = false }
