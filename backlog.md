@@ -2,13 +2,15 @@
 
 <a id="harmonia-stable-qualification"></a>
 ## HARMONIA-STABLE-QUALIFICATION — harmonia stable-release qualification [patch] — todo
-- priority: verification; milestone: M-consumer-validation; basis: `3b16405022ba`.
-- Outcome: Prove a real coupling consumer and decide the registry route needed by two dependents. Follow the [release scope](docs/adr/0005-release-scope-1-0.md) and [milestone exits](backlog/milestones.md). See the [proposed decision](docs/adr/0006-registry-graduation.md).
+- priority: verification; milestone: M-consumer-validation; basis: `3f3b0fd49273`.
+- Outcome: Prove a real coupling consumer and decide the registry route needed by two dependents. Follow the [release scope](docs/adr/0005-release-scope-1-0.md) and [milestone exits](backlog/milestones.md). See the [proposed decision](docs/adr/0006-registry-graduation.md). Planning targets for `harmonia` are 0.2.0, then 0.3.0, then 1.0.0. Verification alone can advance the current version.
 - Representative manifest `harmonia 0.1.4`. Target 1.0.0. The current Cargo manifest disables publication.
 - [x] [patch] All 91 locked all-feature tests passed at `fcda59e`, including the replicated-interface linear solve, bitwise preservation of four caller slices on rejection, and internal checkpoint replay. Independent transfer-level properties remain in ATLAS-HARMONIA-TRANSFER-004.
 - [ ] [minor] Run Ares’s structural partition in a real `PartitionedPair` window and verify its accepted interface. The [Ares coupling suite](https://github.com/ryancinsight/ares/blob/a75eae35688e/crates/ares-coupling/tests/coupling.rs) already passes all six tests with Harmonia `3b164050`, including interface work versus strain energy. Its tests call the structural solve directly.
 - [ ] [arch] Review the proposed registry graduation after the consumer proof. Until an authorized, verified archive exists, mark the ares-coupling and cfd-2d publication edges blocked. Qualify the Git contract separately under ADR 0005.
-- [ ] [patch] Attach exact-revision evidence for the local exits and this member’s [Atlas qualification criteria](https://github.com/ryancinsight/atlas/blob/17b0124a7548ad81e817284afc5cb115c1d1bc78/docs/parity/repositories.json).
+- [ ] [minor] **0.2.0.** Qualify contract proof on pinned source. Apply nonidentity transfer with a known field, force a rejected advance, then compare the restored fields and replayed residual with the pre-step checkpoint. [Source and baseline](gap_audit.md#incremental-release-baseline).
+- [ ] [minor] **0.3.0.** Drive an Ares structural partition through PartitionedPair for a complete window. Record both revisions, exchanged traction and displacement, work balance and convergence outcome.
+- [ ] [major] **1.0.0-beta.1 → 1.0.0-rc.1 → 1.0.0.** Freeze the supported surface at beta. Build the documented Git distribution from a clean checkout. The separate registry decision and provider receipt govern Ares and CFDrs packaging. Repeat the applicable exits on the exact RC before stable promotion. Attach exact-revision evidence for the local exits and this member’s [Atlas qualification criteria](https://github.com/ryancinsight/atlas/blob/17b0124a7548ad81e817284afc5cb115c1d1bc78/docs/parity/repositories.json).
 
 Gap-audit baseline recorded 2026-08-20 at `3d6682f` (detached). Every item below
 is DoR-shaped: outcome, scope/non-goals, acceptance oracle, dependencies,
