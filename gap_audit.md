@@ -1,5 +1,9 @@
 # Harmonia correctness audits
 
+## Verified downstream provider migration
+
+A new external Cargo project resolved the consuming package without a pre-existing lock or provider overrides. Its registry graph includes `horae-time 0.4.0`. The committed lock passes 91 executed tests covering checkpoint replay, failed advances and the partitioned interface solve (0 tests excluded or skipped in that run).
+
 ## Incremental release baseline
 
 Reviewed [harmonia 0.1.4](Cargo.toml) at [3f3b0fd49273](https://github.com/ryancinsight/harmonia/tree/3f3b0fd49273ac4ab5c2a4ad679dd7f2818e8659). The manifest disables Cargo publication. Verify the pinned Git distribution.
