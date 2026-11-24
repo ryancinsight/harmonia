@@ -4,7 +4,7 @@
 ## HARMONIA-STABLE-QUALIFICATION — harmonia stable-release qualification [patch] — todo
 - priority: verification; milestone: M-consumer-validation; basis: `3b16405022ba`.
 - Outcome: Prove a real coupling consumer and decide the registry route needed by two dependents. Follow the [release scope](docs/adr/0005-release-scope-1-0.md) and [milestone exits](backlog/milestones.md). See the [proposed decision](docs/adr/0006-registry-graduation.md).
-- Representative manifest `harmonia 0.1.4`. Target 1.0.0. The current Cargo manifest disables publication.
+- Representative manifest `harmonia-coupling 0.1.4` (library `harmonia`). Target 1.0.0. The current Cargo manifest disables publication.
 - [x] [patch] All 91 locked all-feature tests passed at `fcda59e`, including the replicated-interface linear solve, bitwise preservation of four caller slices on rejection, and internal checkpoint replay. Independent transfer-level properties remain in ATLAS-HARMONIA-TRANSFER-004.
 - [ ] [minor] Run Ares’s structural partition in a real `PartitionedPair` window and verify its accepted interface. The [Ares coupling suite](https://github.com/ryancinsight/ares/blob/a75eae35688e/crates/ares-coupling/tests/coupling.rs) already passes all six tests with Harmonia `3b164050`, including interface work versus strain energy. Its tests call the structural solve directly.
 - [ ] [arch] Review the proposed registry graduation after the consumer proof. Until an authorized, verified archive exists, mark the ares-coupling and cfd-2d publication edges blocked. Qualify the Git contract separately under ADR 0005.

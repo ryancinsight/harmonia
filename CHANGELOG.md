@@ -54,8 +54,10 @@ All notable changes to Harmonia are documented in this file.
 
 ### Changed
 
-- Set the Cargo package name to `harmonia-coupling` while keeping the Rust library
-  name `harmonia` and Git-only distribution.
+- **Breaking:** Set the Cargo package name to `harmonia-coupling` while keeping the
+  Rust library name `harmonia` and Git-only distribution. Consumers declare
+  `harmonia = { package = "harmonia-coupling", git = "https://github.com/ryancinsight/harmonia" }`
+  and keep their `harmonia::` imports.
 
 - Follow the current provider cohort. `aequitas` moves to 0.3.1, `eunomia` to
   0.10.0, `athena-core` to 0.3.2, `horae-time` to 0.2.2, and the dev-only
