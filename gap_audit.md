@@ -1,5 +1,17 @@
 # Harmonia correctness audits
 
+## Verified downstream provider migration
+
+A new external Cargo project resolved the consuming package without a pre-existing lock or provider overrides. Its registry graph includes `horae-time 0.4.0`. The committed lock passes 91 executed tests covering checkpoint replay, failed advances and the partitioned interface solve (0 tests excluded or skipped in that run).
+
+## Incremental release baseline
+
+Reviewed [harmonia 0.1.4](Cargo.toml) at [3f3b0fd49273](https://github.com/ryancinsight/harmonia/tree/3f3b0fd49273ac4ab5c2a4ad679dd7f2818e8659). The manifest disables Cargo publication. Verify the pinned Git distribution.
+
+The next [minor] checkpoint uses [aitken](tests/aitken.rs). [Target version and acceptance criteria](backlog.md#harmonia-stable-qualification).
+
+The Atlas board check reports 2 existing schema findings, including `ATLAS-HARMONIA-ADRGEN-006`. Verify each item against its delivery evidence, archive completed work and rerun the board check before the freeze.
+
 ## ATLAS-HARMONIA-FIXED-RANGE-011 — Fixed relaxation range — 2026-11-06 [patch]
 
 At `5db5f4afdbb758516ae9e70a84f4e13526896ee6`, unit weight applied to a

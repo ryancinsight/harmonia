@@ -230,8 +230,9 @@ dependencies = [
 
 [[package]]
 name = "horae-time"
-version = "0.2.2"
-source = "git+https://github.com/ryancinsight/horae#4cc2d85323a96ffd2b546c6de76a2db332b8d519"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fbe6cf53dba3b6524581c792ef625e83960986af6a532cee2242da2764e8e32f"
 dependencies = [
  "aequitas",
  "eunomia",
