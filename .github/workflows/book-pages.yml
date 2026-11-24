@@ -56,7 +56,8 @@ jobs:
 
       # one plain-named rlib per crate for `mdbook test --library-path`.
 
-      cargo-package: harmonia
+      cargo-package: harmonia-coupling
+      cargo-crate: harmonia
 
       # Must match rust-toolchain.toml: cargo build honours the pin while
 

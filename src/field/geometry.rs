@@ -1,7 +1,7 @@
 //! Validated grid-frame metadata.
 
 use aequitas::systems::si::quantities::Length;
-use eunomia::RealField;
+use eunomia::{FloatElement, RealField};
 
 use super::FieldError;
 
@@ -86,11 +86,7 @@ where
         // RANK is a structural parameter for a fixed-size matrix. The
         // conversion is used only to scale the construction-time error bound;
         // practical grid ranks are far below the precision-loss threshold.
-        #[expect(
-            clippy::cast_precision_loss,
-            reason = "RANK scales the derived dot-product bound and is structural"
-        )]
-        let rank = RANK as f64;
+        let rank = f64::from_count(RANK);
         let tolerance = T::EPSILON * T::from_f64(ORTHONORMAL_TOLERANCE_FACTOR) * T::from_f64(rank);
         for (row, row_values) in direction.iter().enumerate() {
             for (column, column_values) in direction.iter().enumerate() {

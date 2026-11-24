@@ -12,6 +12,13 @@ Physics models remain in their domain packages. Harmonia receives borrowed
 partition state and interface slices; it owns no mesh, field, material law,
 linear solver, accelerator, or runtime.
 
+## Package and Rust library names
+
+The Cargo package is `harmonia-coupling`. The Rust library is still
+`harmonia`, so callers keep their existing `harmonia::` imports. The package
+is Git-only until release qualification is complete; the unrelated
+`harmonia` crate from crates.io is not a substitute.
+
 ## Typed physical-field boundary
 
 `GridGeometry<T, RANK>` validates cell extents, positive finite SI spacing,
